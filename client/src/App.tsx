@@ -23,6 +23,7 @@ const App: React.FunctionComponent = () => {
             gameServer={process.env.REACT_APP_API_BASE_URL}
             lobbyServer={process.env.REACT_APP_API_BASE_URL}
             gameComponents={[
+              { game: coincheGame, board: coincheBoard },
               { game: contreGame, board: contreBoard }
             ]}
           />
