@@ -12,6 +12,7 @@ import sayAnnounce from './move/sayAnnounce';
 import saySkip from './move/saySkip';
 import sayTake from './move/sayTake';
 import sayCoinche from './move/sayCoinche';
+import {getNewAttackingAndDefensingTeamsPointsAfterRoundEnd} from './service/pointsCounter';
 
 export enum CardColor {
   Spade = 'Spade',
@@ -205,6 +206,7 @@ export interface GameState {
   firstPlayerInCurrentTurn: PlayerID;
   playersCardPlayedInCurrentTurn: Record<PlayerID, Card | undefined>;
   playersCardPlayedInPreviousTurn: Record<PlayerID, Card> | undefined;
+  playersAnnouncesDisplayedInCurrentTurn: Record<PlayerID, { id: AnnounceID | 'Belot' }[]>;
 }
 // @TODO: hide belotAnnounce if not said
 export type GameStatePlayerView = Omit<GameState, 'availableCards' | 'playersCards' | 'playersAnnounces'> & {
@@ -269,11 +271,6 @@ export const getPlayerPartner = (player: PlayerID): PlayerID => {
 export const getPlayerTeam = (player: PlayerID): TeamID => [PlayerID.North, PlayerID.South].includes(player) ? TeamID.NorthSouth : TeamID.EastWest;
 
 export const isSayableExpectedPoints = (expectedPoints: ExpectedPoints, currentSayTakeExpectedPoints: ExpectedPoints | undefined): boolean => expectedPoints > (currentSayTakeExpectedPoints || 0);
-const getExpectedPointsValue = (currentSayTake: SayTake): number => {
-  const trumpModePoints = currentSayTake.trumpMode === TrumpMode.NoTrump ? (currentSayTake.expectedPoints * 2) : currentSayTake.expectedPoints;
-
-  return currentSayTake.sayCoincheLevel ? (currentSayTake.sayCoincheLevel === 'surcoinche' ? trumpModePoints * 4 : trumpModePoints * 2) : trumpModePoints;
-};
 
 export const getBelotCards = (trumpMode: TrumpMode): Card[] => {
   switch (trumpMode) {
@@ -962,85 +959,6 @@ export const getAnnounceGroupByAnnounceID = (announceID: AnnounceID): AnnounceGr
     case AnnounceID.QuinteJackHeart:
     case AnnounceID.QuinteJackClub:
       return AnnounceGroup.Quinte;
-  }
-};
-export const getAnnouncePoints = (announce: Announce, trumpMode: TrumpMode): number => {
-  switch (announce.id) {
-    case AnnounceID.SquareAce:
-      return trumpMode === TrumpMode.NoTrump ? 200 : 100;
-    case AnnounceID.SquareNine:
-      return trumpMode === TrumpMode.NoTrump ? 100 : 150;
-    case AnnounceID.SquareTen:
-      return trumpMode === TrumpMode.NoTrump ? 150 : 100;
-    case AnnounceID.SquareJack:
-      return trumpMode === TrumpMode.NoTrump ? 100 : 200;
-    case AnnounceID.SquareQueen:
-      return 100;
-    case AnnounceID.SquareKing:
-      return 100;
-    case AnnounceID.TierceAceSpade:
-    case AnnounceID.TierceAceDiamond:
-    case AnnounceID.TierceAceHeart:
-    case AnnounceID.TierceAceClub:
-    case AnnounceID.TierceKingSpade:
-    case AnnounceID.TierceKingDiamond:
-    case AnnounceID.TierceKingHeart:
-    case AnnounceID.TierceKingClub:
-    case AnnounceID.TierceQueenSpade:
-    case AnnounceID.TierceQueenDiamond:
-    case AnnounceID.TierceQueenHeart:
-    case AnnounceID.TierceQueenClub:
-    case AnnounceID.TierceJackSpade:
-    case AnnounceID.TierceJackDiamond:
-    case AnnounceID.TierceJackHeart:
-    case AnnounceID.TierceJackClub:
-    case AnnounceID.TierceTenSpade:
-    case AnnounceID.TierceTenDiamond:
-    case AnnounceID.TierceTenHeart:
-    case AnnounceID.TierceTenClub:
-    case AnnounceID.TierceNineSpade:
-    case AnnounceID.TierceNineDiamond:
-    case AnnounceID.TierceNineHeart:
-    case AnnounceID.TierceNineClub:
-      return 20;
-    case AnnounceID.QuarteAceSpade:
-    case AnnounceID.QuarteAceDiamond:
-    case AnnounceID.QuarteAceHeart:
-    case AnnounceID.QuarteAceClub:
-    case AnnounceID.QuarteKingSpade:
-    case AnnounceID.QuarteKingDiamond:
-    case AnnounceID.QuarteKingHeart:
-    case AnnounceID.QuarteKingClub:
-    case AnnounceID.QuarteQueenSpade:
-    case AnnounceID.QuarteQueenDiamond:
-    case AnnounceID.QuarteQueenHeart:
-    case AnnounceID.QuarteQueenClub:
-    case AnnounceID.QuarteJackSpade:
-    case AnnounceID.QuarteJackDiamond:
-    case AnnounceID.QuarteJackHeart:
-    case AnnounceID.QuarteJackClub:
-    case AnnounceID.QuarteTenSpade:
-    case AnnounceID.QuarteTenDiamond:
-    case AnnounceID.QuarteTenHeart:
-    case AnnounceID.QuarteTenClub:
-      return 50;
-    case AnnounceID.QuinteAceSpade:
-    case AnnounceID.QuinteAceDiamond:
-    case AnnounceID.QuinteAceHeart:
-    case AnnounceID.QuinteAceClub:
-    case AnnounceID.QuinteKingSpade:
-    case AnnounceID.QuinteKingDiamond:
-    case AnnounceID.QuinteKingHeart:
-    case AnnounceID.QuinteKingClub:
-    case AnnounceID.QuinteQueenSpade:
-    case AnnounceID.QuinteQueenDiamond:
-    case AnnounceID.QuinteQueenHeart:
-    case AnnounceID.QuinteQueenClub:
-    case AnnounceID.QuinteJackSpade:
-    case AnnounceID.QuinteJackDiamond:
-    case AnnounceID.QuinteJackHeart:
-    case AnnounceID.QuinteJackClub:
-      return 100;
   }
 };
 const announcesContainAnnounceID = (announces: Announce[], announceID: AnnounceID): boolean => announces.some(a => a.id === announceID);
@@ -2614,24 +2532,6 @@ export const getWinningCard = (cards: Card[], trumpMode: TrumpMode, firstCardCol
     return currentWinningCard;
   });
 };
-const getCardPoints = (card: Card, trumpMode: TrumpMode): number => {
-  switch (card.name) {
-    case CardName.Ace:
-      return trumpMode === TrumpMode.NoTrump ? 19 : 11;
-    case CardName.Nine:
-      return trumpMode === getTrumpModeAssociatedToCardColor(card.color) ? 14 : 0;
-    case CardName.Ten:
-      return 10;
-    case CardName.Jack:
-      return trumpMode === getTrumpModeAssociatedToCardColor(card.color) ? 20 : 2;
-    case CardName.Queen:
-      return 3;
-    case CardName.King:
-      return 4;
-    default:
-      return 0;
-  }
-};
 
 export const getWinner = (playersCardPlayedInCurrentTurn: Record<PlayerID, Card | undefined>, trumpMode: TrumpMode, firstCardColor: CardColor): PlayerID => {
   const winningCard = getWinningCard(
@@ -2647,20 +2547,39 @@ export const getWinner = (playersCardPlayedInCurrentTurn: Record<PlayerID, Card 
 
   return winningPlayerCard[0] as PlayerID;
 };
-export const getGameWinnerTeam = (teamsPoints: Record<TeamID, number>, howManyPointsATeamMustReachToEndTheGame: number): TeamID | null | undefined => {
-  if (Object.values(teamsPoints).every(points => points < howManyPointsATeamMustReachToEndTheGame)) {
-    return;
+export const getGameWinnerTeam = (teamsPoints: Record<TeamID, number>, howManyPointsATeamMustReachToEndTheGame: number, wonTeamsCards: Record<TeamID, Card[]>): TeamID | null | undefined => {
+  const northSouthTeamHasReachTheRequiredNumberOfPoints = teamsPoints[TeamID.NorthSouth] >= howManyPointsATeamMustReachToEndTheGame;
+  const eastWestTeamHasReachTheRequiredNumberOfPoints = teamsPoints[TeamID.EastWest] >= howManyPointsATeamMustReachToEndTheGame;
+  const northSouthTeamWonAtLeastOneCard = wonTeamsCards[TeamID.NorthSouth].length > 0;
+  const eastWestTeamWonAtLeastOneCard = wonTeamsCards[TeamID.EastWest].length > 0;
+
+  // no team has reach the required number of points
+  if (!northSouthTeamHasReachTheRequiredNumberOfPoints && !eastWestTeamHasReachTheRequiredNumberOfPoints) {
+    return undefined;
   }
 
-  if (teamsPoints[TeamID.NorthSouth] === teamsPoints[TeamID.EastWest]) {
-    return null;
+  // NorthSouth team only has reach the required number of points
+  if (northSouthTeamHasReachTheRequiredNumberOfPoints && !eastWestTeamHasReachTheRequiredNumberOfPoints) {
+    return northSouthTeamWonAtLeastOneCard ? TeamID.NorthSouth : undefined;
   }
 
-  if (teamsPoints[TeamID.NorthSouth] >= teamsPoints[TeamID.EastWest]) {
-    return TeamID.NorthSouth;
+  // EastWest team only has reach the required number of points
+  if (!northSouthTeamHasReachTheRequiredNumberOfPoints && eastWestTeamHasReachTheRequiredNumberOfPoints) {
+    return eastWestTeamWonAtLeastOneCard ? TeamID.EastWest : undefined;
   }
 
-  return TeamID.EastWest;
+  // both team have reach the required number of points and NorthSouth team has more points
+  if (teamsPoints[TeamID.NorthSouth] > teamsPoints[TeamID.EastWest]) {
+    return northSouthTeamWonAtLeastOneCard ? TeamID.NorthSouth : TeamID.EastWest;
+  }
+
+  // both team have reach the required number of points and EastWest team has more points
+  if (teamsPoints[TeamID.EastWest] > teamsPoints[TeamID.NorthSouth]) {
+    return eastWestTeamWonAtLeastOneCard ? TeamID.EastWest : TeamID.NorthSouth;
+  }
+
+  // draw
+  return null;
 };
 
 export const getTurnOrder = (firstPlayerID: PlayerID): PlayerID[] => {
@@ -2705,6 +2624,12 @@ const getDefaultPlayersCardPlayedInCurrentTurn = () => ({
   [PlayerID.West]: undefined,
 });
 const getDefaultPlayersCardPlayedInPreviousTurn = () => undefined;
+const getDefaultPlayersAnnouncesDisplayedInCurrentTurn = () => ({
+  [PlayerID.North]: [],
+  [PlayerID.East]: [],
+  [PlayerID.South]: [],
+  [PlayerID.West]: [],
+});
 const getDefaultPlayersSaid = () => ({
   [PlayerID.North]: undefined,
   [PlayerID.East]: undefined,
@@ -2748,6 +2673,7 @@ export const getSetupGameState = (_: Context<PlayerID, PhaseID>): GameState => {
     playersAnnounces: getDefaultPlayersAnnounces(),
     playersCardPlayedInCurrentTurn: getDefaultPlayersCardPlayedInCurrentTurn(),
     playersCardPlayedInPreviousTurn: getDefaultPlayersCardPlayedInPreviousTurn(),
+    playersAnnouncesDisplayedInCurrentTurn: getDefaultPlayersAnnouncesDisplayedInCurrentTurn(),
   };
 };
 const mustMoveFromTalkPhaseToPlayCardsPhase = (currentSayTake: SayTake | undefined, numberOfSuccessiveSkipSaid: number): boolean => {
@@ -2956,11 +2882,33 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
             const bestAnnounceID = getWinningAnnounceID(allSaidPlayerAnnounces.map(a => a.announce.id), G.currentSayTake!.trumpMode);
             if (bestAnnounceID) {
               const bestAnnounceBelongsToNorthSouthTeam = northSouthTeamSaidPlayerAnnounces.map(a => a.announce.id).includes(bestAnnounceID);
+              const northPlayerAnnounces = G.playersAnnounces[PlayerID.North].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && bestAnnounceBelongsToNorthSouthTeam }));
+              const eastPlayerAnnounces = G.playersAnnounces[PlayerID.East].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && !bestAnnounceBelongsToNorthSouthTeam }));
+              const southPlayerAnnounces = G.playersAnnounces[PlayerID.South].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && bestAnnounceBelongsToNorthSouthTeam }));
+              const westPlayerAnnounces = G.playersAnnounces[PlayerID.West].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && !bestAnnounceBelongsToNorthSouthTeam }));
               G.playersAnnounces = {
-                [PlayerID.North]: G.playersAnnounces[PlayerID.North].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && bestAnnounceBelongsToNorthSouthTeam })),
-                [PlayerID.East]: G.playersAnnounces[PlayerID.East].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && !bestAnnounceBelongsToNorthSouthTeam })),
-                [PlayerID.South]: G.playersAnnounces[PlayerID.South].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && bestAnnounceBelongsToNorthSouthTeam })),
-                [PlayerID.West]: G.playersAnnounces[PlayerID.West].map(pa => ({ ...pa, isCardsDisplayable: pa.isSaid && !bestAnnounceBelongsToNorthSouthTeam })),
+                [PlayerID.North]: northPlayerAnnounces,
+                [PlayerID.East]: eastPlayerAnnounces,
+                [PlayerID.South]: southPlayerAnnounces,
+                [PlayerID.West]: westPlayerAnnounces,
+              };
+              G.playersAnnouncesDisplayedInCurrentTurn = {
+                [PlayerID.North]: [
+                  ...G.playersAnnouncesDisplayedInCurrentTurn[PlayerID.North],
+                  ...northPlayerAnnounces.filter(a => a.isCardsDisplayable).map(a => ({ id: a.announce.id })),
+                ],
+                [PlayerID.East]: [
+                  ...G.playersAnnouncesDisplayedInCurrentTurn[PlayerID.East],
+                  ...eastPlayerAnnounces.filter(a => a.isCardsDisplayable).map(a => ({ id: a.announce.id })),
+                ],
+                [PlayerID.South]: [
+                  ...G.playersAnnouncesDisplayedInCurrentTurn[PlayerID.South],
+                  ...southPlayerAnnounces.filter(a => a.isCardsDisplayable).map(a => ({ id: a.announce.id })),
+                ],
+                [PlayerID.West]: [
+                  ...G.playersAnnouncesDisplayedInCurrentTurn[PlayerID.West],
+                  ...westPlayerAnnounces.filter(a => a.isCardsDisplayable).map(a => ({ id: a.announce.id })),
+                ],
               };
             }
           }
@@ -2983,6 +2931,9 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
           throw new Error();
         }
 
+        // clear playersAnnouncesDisplayedInCurrentTurn
+        G.playersAnnouncesDisplayedInCurrentTurn = getDefaultPlayersAnnouncesDisplayedInCurrentTurn();
+
         const winner = getWinner(G.playersCardPlayedInCurrentTurn, G.currentSayTake.trumpMode, G.playersCardPlayedInCurrentTurn[G.firstPlayerInCurrentTurn]!.color);
         const winnerTeam = getPlayerTeam(winner);
 
@@ -3002,39 +2953,24 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
           return;
         }
 
-        // compute Talk phase points
-        const talkPhasePoints = getExpectedPointsValue(G.currentSayTake);
-
-        // compute capot (100) or last turn (10) extra points
-        const attackingTeamExtraPoints = G.attackingTeam === winnerTeam  ? (!G.wonTeamsCards[G.defensingTeam].length ? 100 : 10) : 0;
-        const defensingTeamExtraPoints = G.defensingTeam === winnerTeam  ? (!G.wonTeamsCards[G.attackingTeam].length ? 100 : 10) : 0;
-
-        // compute cards points
-        const attackingTeamCardsPoints = G.wonTeamsCards[G.attackingTeam].reduce((acc, card) => acc + getCardPoints(card, G.currentSayTake!.trumpMode), 0);
-        const defensingTeamCardsPoints = G.wonTeamsCards[G.defensingTeam].reduce((acc, card) => acc + getCardPoints(card, G.currentSayTake!.trumpMode), 0);
-
-        // compute belot announce points
-        const attackingTeamBelotAnnouncePoints = (G.belotAnnounce && G.belotAnnounce.isSaid && getPlayerTeam(G.belotAnnounce.owner) === G.attackingTeam) ? 20 : 0;
-        const defensingTeamBelotAnnouncePoints = (G.belotAnnounce && G.belotAnnounce.isSaid && getPlayerTeam(G.belotAnnounce.owner) === G.defensingTeam) ? 20 : 0;
-
-        // compute announces points
-        const northSouthTeamAnnouncesPoints = [...G.playersAnnounces[PlayerID.North], ...G.playersAnnounces[PlayerID.South]].filter(a => a.isCardsDisplayable).reduce((acc, a) => acc + getAnnouncePoints(a.announce, G.currentSayTake!.trumpMode), 0);
-        const eastWestTeamAnnouncesPoints = [...G.playersAnnounces[PlayerID.East], ...G.playersAnnounces[PlayerID.West]].filter(a => a.isCardsDisplayable).reduce((acc, a) => acc + getAnnouncePoints(a.announce, G.currentSayTake!.trumpMode), 0);
-        const attackingTeamAnnouncesPoints = G.attackingTeam === TeamID.NorthSouth ? northSouthTeamAnnouncesPoints : eastWestTeamAnnouncesPoints;
-        const defensingTeamAnnouncesPoints = G.defensingTeam === TeamID.NorthSouth ? northSouthTeamAnnouncesPoints : eastWestTeamAnnouncesPoints;
-
-        // check which team won the round then assign their points accordingly
-        const attackingTeamTotalPoints = (attackingTeamExtraPoints + attackingTeamCardsPoints + attackingTeamBelotAnnouncePoints + attackingTeamAnnouncesPoints);
-        const defensingTeamTotalPoints = (defensingTeamExtraPoints + defensingTeamCardsPoints + defensingTeamBelotAnnouncePoints + defensingTeamAnnouncesPoints);
-        if (attackingTeamTotalPoints >= G.currentSayTake.expectedPoints && attackingTeamTotalPoints >= defensingTeamTotalPoints) {
-          G.teamsPoints[G.attackingTeam] += (attackingTeamTotalPoints + talkPhasePoints);
-          G.teamsPoints[G.defensingTeam] += defensingTeamTotalPoints;
-        } else {
-          G.teamsPoints[G.defensingTeam] += (attackingTeamTotalPoints + defensingTeamTotalPoints + talkPhasePoints);
-        }
+        const [newAttackingTeamPoints, newDefensingTeamPoints] = getNewAttackingAndDefensingTeamsPointsAfterRoundEnd(
+          G.teamsPoints[G.attackingTeam],
+          G.attackingTeam,
+          G.wonTeamsCards[G.attackingTeam],
+          G.teamsPoints[G.defensingTeam],
+          G.defensingTeam,
+          G.wonTeamsCards[G.defensingTeam],
+          G.currentSayTake,
+          winnerTeam,
+          [...G.playersAnnounces[PlayerID.North], ...G.playersAnnounces[PlayerID.South]].filter(a => a.isCardsDisplayable).map(a => a.announce),
+          [...G.playersAnnounces[PlayerID.East], ...G.playersAnnounces[PlayerID.West]].filter(a => a.isCardsDisplayable).map(a => a.announce),
+          G.belotAnnounce,
+        );
+        G.teamsPoints[G.attackingTeam] = newAttackingTeamPoints;
+        G.teamsPoints[G.defensingTeam] = newDefensingTeamPoints;
 
         // go to Deal phase if the end of the game has not been reached
-        const gameWinnerTeam = getGameWinnerTeam(G.teamsPoints, G.howManyPointsATeamMustReachToEndTheGame);
+        const gameWinnerTeam = getGameWinnerTeam(G.teamsPoints, G.howManyPointsATeamMustReachToEndTheGame, G.wonTeamsCards);
         if (gameWinnerTeam === undefined) {
           G.__forcedNextPhase = PhaseID.Deal;
           return;
