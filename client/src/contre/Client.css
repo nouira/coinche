@@ -8,7 +8,7 @@
     "playerLeft   playedCardsArea playerRight "
     "playerBottom playerBottom    playerBottom";
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 210px 240px auto;
+  grid-template-rows: 200px 250px auto;
 }
 .board > .player.top {
   grid-area: playerTop;
@@ -177,8 +177,6 @@
     "otherPlayerTalks otherPlayerTalks";
   grid-template-columns: 1fr 40px;
   grid-template-rows: 100px auto 1fr;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 .otherPlayer > .otherPlayerCards {
   grid-area: otherPlayerCards;
@@ -194,12 +192,9 @@
 }
 .otherPlayerCards {
   position: relative;
-  margin-top: -10px;
+  margin-top: -20px;
   margin-left: -30px;
   text-align: center;
-}
-.otherPlayerCards .card {
-  font-size: 90px;
 }
 .otherPlayerCards .cardWrapper {
   position: absolute;
@@ -239,17 +234,15 @@
   transform: rotate(36deg);
 }
 .otherPlayer.currentPlayer .otherPlayerCards::before {
-  content: '\1f449';
+  content: '\1f447';
   position: absolute;
-  top: 50%;
-  left: 55px;
+  top: 0;
+  left: 50%;
   font-size: 40px;
   z-index: 10;
 }
 .hiddenAdditionalCards {
-  /* @TODO: don't need it if constraint by parent size */
-  margin-left: -25px;
-  transform: scale(.5);
+  transform: scale(.6);
 }
 .hiddenAdditionalCards .cardWrapper {
   position: absolute;
@@ -281,6 +274,14 @@
 .hiddenAdditionalCards .cardWrapper:nth-child(12) {
   z-index: 12;
   transform: rotate(-12deg);
+}
+/* @TODO: don't need it if constraint by parent size */
+.hiddenAdditionalCards {
+  margin-left: -25px;
+}
+/* @TODO: don't need it if constraint by parent size */
+.otherPlayer .hiddenAdditionalCards {
+  margin-left: -35px;
 }
 
 /**
@@ -377,31 +378,101 @@
 .playedCard.right .cardWrapper {
   transform: rotate(270deg);
 }
+.roundScore {
+  display: grid;
+  grid-gap: 7px;
+  grid-template-areas:
+    "contract           contract        contract              contractResult"
+    ".                  .               headerPartnerTeam     headerOpponentTeam"
+    "headerTotalPoints  cardsPoints     partnerCardsPoints    opponentCardsPoints  "
+    "headerTotalPoints  extraPoints     partnerExtraPoints    opponentExtraPoints  "
+    "headerTotalPoints  belotPoints     partnerBelotPoints    opponentBelotPoints  "
+    "headerTotalPoints  totalPoints     partnerTotalPoints    opponentTotalPoints  "
+    "headerTotalPoints  roundedPoints   partnerRoundedPoints  opponentRoundedPoints"
+    "headerScoredPoints .               partnerScoredPoints   opponentScoredPoints"
+    ".                  footer          footer                .";
+  grid-template-columns: 90px 90px 90px 90px;
+  grid-template-rows: 60px 40px 40px 40px 40px 40px 40px 40px 40px;
+}
+
+.roundScore > .contract {
+  grid-area: contract;
+}
+.roundScore > .contractResult {
+  grid-area: contractResult;
+}
+.roundScore > .header.partnerTeam {
+  grid-area: headerPartnerTeam;
+}
+.roundScore > .header.opponentTeam {
+  grid-area: headerOpponentTeam;
+}
+.roundScore > .header.totalPoints {
+  grid-area: headerTotalPoints;
+}
+.roundScore > .header.scoredPoints {
+  grid-area: headerScoredPoints;
+}
+.roundScore > .partnerTeam.scoredPoints {
+  grid-area: partnerScoredPoints;
+}
+.roundScore > .opponentTeam.scoredPoints {
+  grid-area: opponentScoredPoints;
+}
+.roundScore > .footer {
+  grid-area: footer;
+}
+
+.roundScore > .detailedTotalPoints.cardsPoints{
+  grid-area: cardsPoints;
+}
+.roundScore > .detailedTotalPoints.extraPoints{
+  grid-area: extraPoints;
+}
+.roundScore > .detailedTotalPoints.belotPoints{
+  grid-area: belotPoints;
+}
+.roundScore > .detailedTotalPoints.totalPoints{
+  grid-area: totalPoints;
+}
+.roundScore > .detailedTotalPoints.roundedPoints{
+  grid-area: roundedPoints;
+}
+
+.roundScore > .partnerTeam.cardsPoints{
+  grid-area: partnerCardsPoints;
+}
+.roundScore > .partnerTeam.extraPoints{
+  grid-area: partnerExtraPoints;
+}
+.roundScore > .partnerTeam.belotPoints{
+  grid-area: partnerBelotPoints;
+}
+.roundScore > .partnerTeam.totalPoints{
+  grid-area: partnerTotalPoints;
+}
+.roundScore > .partnerTeam.roundedPoints{
+  grid-area: partnerRoundedPoints;
+}
+
+.roundScore > .opponentTeam.cardsPoints{
+  grid-area: opponentCardsPoints;
+}
+.roundScore > .opponentTeam.extraPoints{
+  grid-area: opponentExtraPoints;
+}
+.roundScore > .opponentTeam.belotPoints{
+  grid-area: opponentBelotPoints;
+}
+.roundScore > .opponentTeam.totalPoints{
+  grid-area: opponentTotalPoints;
+}
+.roundScore > .opponentTeam.roundedPoints{
+  grid-area: opponentRoundedPoints;
+}
 
 /**
  */
 .info {
   font-size: 18px;
-  overflow: auto;
-}
-.info .label {
-  text-align: left;
-}
-.info .data {
-  text-align: right;
-}
-.info .teamPoints {
-  display: flex;
-  justify-content: space-between;
-  max-width: 250px;
-}
-.info .attackingPlayer {
-  display: flex;
-  justify-content: space-between;
-  max-width: 250px;
-}
-.info .goal {
-  display: flex;
-  justify-content: space-between;
-  max-width: 250px;
 }

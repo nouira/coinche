@@ -1,23 +1,29 @@
 import React, {useContext} from 'react';
 import {I18nContext} from '../context/i18n';
-import {Announce, BelotAnnounce, ExpectedPoints, PlayerID, TeamID, TrumpMode} from '../../shared/coinche';
+import {
+  AnnounceID,
+  ExpectedPoints,
+  PlayerID,
+  SayCoincheLevel,
+  TrumpMode,
+} from '../../shared/coinche';
 
 type ComponentProps = {
-  partnerTeamID: TeamID;
   partnerTeamPoints: number;
   opponentTeamPoints: number;
   howManyPointsATeamMustReachToEndTheGame: number;
-  attackingTeamID?: TeamID;
+  attackingPlayerName?: string;
   trumpMode?: TrumpMode;
   expectedPoints?: ExpectedPoints;
-  displayablePlayersAnnounces: Record<PlayerID, { playerName: string; announces: (Announce | BelotAnnounce)[] }>;
+  sayCoincheLevel?: SayCoincheLevel;
+  displayablePlayersAnnounces: Record<PlayerID, { playerName: string; announces: { id: AnnounceID | 'Belot' }[] }>;
 };
 export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
-  partnerTeamID,
+  sayCoincheLevel,
   partnerTeamPoints,
   opponentTeamPoints,
   howManyPointsATeamMustReachToEndTheGame,
-  attackingTeamID,
+  attackingPlayerName,
   trumpMode,
   expectedPoints,
   displayablePlayersAnnounces,
@@ -26,21 +32,33 @@ export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
 
   return (
     <React.Fragment>
-      <div>{i18n.Info.currentTeamScore('partner', partnerTeamPoints, howManyPointsATeamMustReachToEndTheGame)}</div>
-      <div>{i18n.Info.currentTeamScore('opponent', opponentTeamPoints, howManyPointsATeamMustReachToEndTheGame)}</div>
-      {attackingTeamID && trumpMode && expectedPoints && (
+      <div className="teamPoints">
+        <span className="label">{i18n.Info.partnerTeam}</span>
+        <span className="data">{`${partnerTeamPoints}/${howManyPointsATeamMustReachToEndTheGame}`}</span>
+      </div>
+      <div className="teamPoints">
+        <span className="label">{i18n.Info.opponentTeam}</span>
+        <span className="data">{`${opponentTeamPoints}/${howManyPointsATeamMustReachToEndTheGame}`}</span>
+      </div>
+      {attackingPlayerName && trumpMode && expectedPoints && (
         <React.Fragment>
-          <div>{i18n.Info.currentAttackingTeam(attackingTeamID === partnerTeamID ? 'partner' : 'opponent')}</div>
-          <div>{i18n.Info.currentGoal(trumpMode, expectedPoints)}</div>
+          <div className="attackingPlayer">
+            <span className="label">{i18n.Info.attackingPlayer}</span>
+            <span className="data">{attackingPlayerName}</span>
+          </div>
+          <div className="goal">
+            <span className="label">{i18n.Info.goal}</span>
+            <span className="data">{`${expectedPoints} ${i18n.trumpMode[trumpMode]}${sayCoincheLevel === 'coinche' ? ` (${i18n.Info.coinched})` : ''}${sayCoincheLevel === 'surcoinche' ? ` (${i18n.Info.surcoinched})` : ''}`}</span>
+          </div>
         </React.Fragment>
       )}
       {Object.entries(displayablePlayersAnnounces)
         .filter(([_, { announces }]) => announces.length > 0)
         .map(([playerID, { playerName, announces }]) => (
-          <div key={playerID}>
+          <div key={playerID} className="playerAnnounces">
             <span>{i18n.Info.announcesOf(playerName)}</span>
             {announces.map(a => (
-              <div key={a.id}>{`- ${i18n.announce.id[a.id]}`}</div>
+              <div key={a.id} className="announce">{`- ${i18n.announce.id[a.id]}`}</div>
             ))}
           </div>
         ))

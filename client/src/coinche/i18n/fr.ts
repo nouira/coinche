@@ -8,13 +8,8 @@ const translatedTrumpMode = {
   [TrumpMode.TrumpHeart]: 'Coeur',
   [TrumpMode.NoTrump]: 'Sans atout',
 };
-const translatedTeamType = {
-  partner: 'Nous',
-  opponent: 'Eux',
-};
 
 export const fr: I18n = {
-  teamType: translatedTeamType,
   trumpMode: translatedTrumpMode,
   announce: {
     id: {
@@ -98,10 +93,13 @@ export const fr: I18n = {
     doNotDisplayPreviousCardsPlayed: 'Ne plus voir les cartes jouées au tour précédent',
   },
   Info: {
-    currentTeamScore: (teamType, teamPoints, howManyPointsATeamMustReachToEndTheGame) => `${translatedTeamType[teamType]} : ${teamPoints}/${howManyPointsATeamMustReachToEndTheGame}`,
-    currentAttackingTeam: (teamType) => `Attaquant : ${translatedTeamType[teamType]}`,
-    currentGoal: (trumpMode, expectedPoints) => `Objectif : ${expectedPoints} ${translatedTrumpMode[trumpMode]}`,
-    announcesOf: (playerName) => `Annonces de ${playerName} :`,
+    partnerTeam: 'Notre équipe\u00A0:\u00A0',
+    opponentTeam: 'Leur équipe\u00A0:\u00A0',
+    attackingPlayer: 'Attaquant\u00A0:\u00A0',
+    goal: 'Objectif\u00A0:\u00A0',
+    coinched: 'coinché',
+    surcoinched: 'surcoinché',
+    announcesOf: (playerName) => `Annonces de ${playerName}\u00A0:\u00A0`,
   },
   TalkMenu: {
     selectTrumpModePlaceholder: `Choisir l'atout…`,

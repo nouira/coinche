@@ -2,13 +2,14 @@ import './Client.css';
 import React, {useState} from 'react';
 import {BoardProps} from 'boardgame.io/react';
 import {
-  AnnounceID,
+  BelotAnnounce,
   Card,
   ExpectedPoints,
   GameStatePlayerView,
   Moves,
   PhaseID,
   PlayerID,
+  PlayerAnnounce,
   SecretPlayerAnnounce,
   TeamID,
   TrumpMode,
@@ -19,7 +20,7 @@ import {
   isSayableExpectedPoints,
   howManyPlayers,
   validExpectedPoints,
-} from '../shared/coinche';
+} from '../shared/contre';
 import {PlayerScreenPosition, getPlayerIDForPosition} from './service/getPlayerIDForPosition';
 import {getPlayerNameByID} from './service/getPlayerNameByID';
 import {TalkMenuComponent} from './component/TalkMenu';
@@ -28,8 +29,7 @@ import {OtherPlayerCardsComponent} from './component/OtherPlayerCards';
 import {PlayerSaidComponent} from './component/PlayerSaid';
 import {PreviousCardsPlayedMenuComponent} from './component/PreviousCardsPlayedMenu';
 import {PlayedCardsComponent} from './component/PlayedCards';
-import {SayAnnounceMenuComponent} from './component/SayAnnounceMenu';
-import {PlayerSaidAnnouncesComponent} from './component/PlayerSaidAnnounces';
+import {RoundScore} from './component/RoundScore';
 import {InfoComponent} from './component/Info';
 import {HiddenStackedCardsComponent} from './component/HiddenStackedCards';
 
@@ -67,11 +67,6 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
   const leftPlayerID = getPlayerIDForPosition(bottomPlayerID, 'left');
   const rightPlayerID = getPlayerIDForPosition(bottomPlayerID, 'right');
 
-  const bottomPlayerSaidAnnounces = (G.playersAnnounces[bottomPlayerID] as SecretPlayerAnnounce[]).filter(a => a.isSaid);
-  const topPlayerSaidAnnounces = (G.playersAnnounces[topPlayerID] as SecretPlayerAnnounce[]).filter(a => a.isSaid);
-  const leftPlayerSaidAnnounces = (G.playersAnnounces[leftPlayerID] as SecretPlayerAnnounce[]).filter(a => a.isSaid);
-  const rightPlayerSaidAnnounces = (G.playersAnnounces[rightPlayerID] as SecretPlayerAnnounce[]).filter(a => a.isSaid);
-
   const partnerTeamID = getPlayerTeam(bottomPlayerID);
   const opponentTeamID = partnerTeamID === TeamID.NorthSouth ? TeamID.EastWest : TeamID.NorthSouth;
 
@@ -82,6 +77,7 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
 
   const currentPhaseIsTalk = ctx.phase === PhaseID.Talk;
   const currentPhaseIsPlayCards = ctx.phase === PhaseID.PlayCards;
+  const currentPhaseIsDisplayResults = ctx.phase === PhaseID.DisplayResults;
   const currentPhaseNeedsToWaitForAPlayerMove = currentPhaseIsTalk || currentPhaseIsPlayCards;
 
   const isNotFirstPlayCardTurn = G.playersCardPlayedInPreviousTurn !== undefined;
@@ -92,37 +88,37 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
   const lastBottomPlayerTakeSaid = G.lastPlayersTakeSaid[bottomPlayerID];
 
   const belotCards = G.currentSayTake ? getBelotCards(G.currentSayTake.trumpMode) : [];
-  const displayableAnnouncesByPlayerID: Record<PlayerID, { playerName: string; announces: { id: AnnounceID | 'Belot' }[] }> = {
+  const displayableAnnouncesByPlayerID: Record<PlayerID, { playerName: string; announces: (BelotAnnounce)[] }> = {
     [PlayerID.North]: {
       playerName: getPlayerNameByID(gameMetadata, PlayerID.North),
-      announces: G.playersAnnounces[PlayerID.North].filter(pa => pa.isCardsDisplayable).map(pa => pa.announce!),
+      announces: [],
     },
     [PlayerID.East]: {
       playerName: getPlayerNameByID(gameMetadata, PlayerID.East),
-      announces: G.playersAnnounces[PlayerID.East].filter(pa => pa.isCardsDisplayable).map(pa => pa.announce!),
+      announces: [],
     },
     [PlayerID.South]: {
       playerName: getPlayerNameByID(gameMetadata, PlayerID.South),
-      announces: G.playersAnnounces[PlayerID.South].filter(pa => pa.isCardsDisplayable).map(pa => pa.announce!),
+      announces: [],
     },
     [PlayerID.West]: {
       playerName: getPlayerNameByID(gameMetadata, PlayerID.West),
-      announces: G.playersAnnounces[PlayerID.West].filter(pa => pa.isCardsDisplayable).map(pa => pa.announce!),
+      announces: [],
     },
   };
   if (G.belotAnnounce && G.belotAnnounce.isSaid) {
-    displayableAnnouncesByPlayerID[G.belotAnnounce.owner].announces.push({ id: G.belotAnnounce.id });
+    displayableAnnouncesByPlayerID[G.belotAnnounce.owner].announces.push(G.belotAnnounce);
   }
 
   const sayTake = (selectedExpectedPoint: ExpectedPoints, selectedTrumpMode: TrumpMode) => {
     moves.sayTake(selectedExpectedPoint, selectedTrumpMode);
     moves.endTurn();
   };
-  const sayCoinche = () => {
-    const isCurrentSayTakeCoinchedBeforeSayingCoinche = Boolean(G.currentSayTake && G.currentSayTake.sayCoincheLevel === 'coinche');
-    moves.sayCoinche();
+  const sayContre = () => {
+    const isCurrentSayTakeContredBeforeSayingContre = Boolean(G.currentSayTake && G.currentSayTake.sayContreLevel === 'contre');
+    moves.sayContre();
 
-    if (isCurrentSayTakeCoinchedBeforeSayingCoinche) {
+    if (isCurrentSayTakeContredBeforeSayingContre) {
       moves.waitBeforeMovingToNextPhase();
       setTimeout(() => {
         moves.moveToNextPhase();
@@ -161,15 +157,20 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
     }
   };
 
+  const endAck = () => {
+    G.playersAck[bottomPlayerID] = true;
+    moves.endTurn();
+  }
   return (
     <div className="board">
       <div className="info">
         <InfoComponent
-          sayCoincheLevel={G.currentSayTake?.sayCoincheLevel}
+          player={getPlayerNameByID(gameMetadata, bottomPlayerID)}
+          partnerTeamID={partnerTeamID}
           partnerTeamPoints={G.teamsPoints[partnerTeamID]}
           opponentTeamPoints={G.teamsPoints[opponentTeamID]}
           howManyPointsATeamMustReachToEndTheGame={G.howManyPointsATeamMustReachToEndTheGame}
-          attackingPlayerName={G.currentSayTake && getPlayerNameByID(gameMetadata, G.currentSayTake.playerID)}
+          attackingTeamID={G.currentSayTake && G.attackingTeam}
           trumpMode={G.currentSayTake?.trumpMode}
           expectedPoints={G.currentSayTake?.expectedPoints}
           displayablePlayersAnnounces={displayableAnnouncesByPlayerID}
@@ -191,12 +192,9 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
           {currentPhaseIsTalk && (!currentPlayerIsTopPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[topPlayerID] && (
             <PlayerSaidComponent playerSaid={G.playersSaid[topPlayerID]}/>
           )}
-          {currentPhaseIsPlayCards && (
-            <PlayerSaidAnnouncesComponent
-              saidAnnounceGroups={!isNotFirstPlayCardTurn ? topPlayerSaidAnnounces.map(a => a.announceGroup!) : []}
-              saidAnnounces={G.playersAnnouncesDisplayedInCurrentTurn[topPlayerID]}
-            />
-          )}
+          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && topPlayerSaidAnnounces.length > 0 && (
+            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={topPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+          )} */}
         </div>
       </div>
 
@@ -215,12 +213,9 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
           {currentPhaseIsTalk && (!currentPlayerIsLeftPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[leftPlayerID] && (
             <PlayerSaidComponent playerSaid={G.playersSaid[leftPlayerID]}/>
           )}
-          {currentPhaseIsPlayCards && (
-            <PlayerSaidAnnouncesComponent
-              saidAnnounceGroups={!isNotFirstPlayCardTurn ? leftPlayerSaidAnnounces.map(a => a.announceGroup!) : []}
-              saidAnnounces={G.playersAnnouncesDisplayedInCurrentTurn[leftPlayerID]}
-            />
-          )}
+          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && leftPlayerSaidAnnounces.length > 0 && (
+            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={leftPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+          )} */}
         </div>
       </div>
 
@@ -236,30 +231,31 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
           {currentPhaseIsTalk && (!currentPlayerIsRightPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[rightPlayerID] && (
             <PlayerSaidComponent playerSaid={G.playersSaid[rightPlayerID]}/>
           )}
-          {currentPhaseIsPlayCards && (
-            <PlayerSaidAnnouncesComponent
-              saidAnnounceGroups={!isNotFirstPlayCardTurn ? rightPlayerSaidAnnounces.map(a => a.announceGroup!) : []}
-              saidAnnounces={G.playersAnnouncesDisplayedInCurrentTurn[rightPlayerID]}
-            />
-          )}
+          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && rightPlayerSaidAnnounces.length > 0 && (
+            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={rightPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+          )} */}
         </div>
       </div>
 
       <div className="playedCardsArea">
         <PlayedCardsComponent bottomPlayerID={bottomPlayerID} playedCards={playedCards} />
       </div>
+      {currentPhaseIsDisplayResults && (
+        <div className="playedCardsArea">
+          <RoundScore partnerTeamID={partnerTeamID} opponentTeamID={opponentTeamID} roundScore={G.roundResults}
+            currentSayTake={G.currentSayTake}
+            endAck={endAck} />
+        </div>
+      )}
 
       <div className={`myPlayer player bottom ${getTurnIndicatorClassForPosition('bottom', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
         <div className="playerTalks">
           {currentPhaseIsTalk && (!currentPlayerIsBottomPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[bottomPlayerID] && (
             <PlayerSaidComponent playerSaid={G.playersSaid[bottomPlayerID]}/>
           )}
-          {currentPhaseIsPlayCards && (
-            <PlayerSaidAnnouncesComponent
-              saidAnnounceGroups={!isNotFirstPlayCardTurn ? bottomPlayerSaidAnnounces.map(a => a.announceGroup!) : []}
-              saidAnnounces={G.playersAnnouncesDisplayedInCurrentTurn[bottomPlayerID]}
-            />
-          )}
+          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && bottomPlayerSaidAnnounces.length > 0 && (
+            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={bottomPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+          )} */}
         </div>
         <div className="menu">
           {!G.__isWaitingBeforeMovingToNextPhase && currentPhaseIsPlayCards && isNotFirstPlayCardTurn && (
@@ -268,17 +264,14 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
               toggleIsDisplayedPreviousCardsPlayed={() => setIsDisplayedPreviousCardsPlayed(!isDisplayedPreviousCardsPlayed)}
             />
           )}
-          {!G.__isWaitingBeforeMovingToNextPhase && !isDisplayedPreviousCardsPlayed && currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && currentPlayerIsBottomPlayer && (
-            <SayAnnounceMenuComponent sayAnnounce={moves.sayAnnounce} availableAnnounces={G.playerAnnounces.filter(a => !a.isSaid).map(a => a.announce)} />
-          )}
           {!G.__isWaitingBeforeMovingToNextPhase && !isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && currentPlayerIsBottomPlayer && (
             <TalkMenuComponent
               saySkip={saySkip}
-              canSayTake={!(G.currentSayTake && G.currentSayTake.sayCoincheLevel === 'coinche' && G.currentSayTake.playerID === playerID)}
+              canSayTake={!(G.currentSayTake && G.currentSayTake.sayContreLevel === 'contre' && G.currentSayTake.playerID === playerID)}
               sayTake={sayTake}
-              sayCoinche={sayCoinche}
-              canSayCoinche={Boolean(G.currentSayTake && G.attackingTeam === opponentTeamID && G.currentSayTake.sayCoincheLevel !== 'coinche')}
-              canSaySurcoinche={Boolean(G.currentSayTake && G.attackingTeam === partnerTeamID && G.currentSayTake.sayCoincheLevel === 'coinche')}
+              sayContre={sayContre}
+              canSayContre={Boolean(G.currentSayTake && G.attackingTeam === opponentTeamID && G.currentSayTake.sayContreLevel !== 'contre')}
+              canSaySurcontre={Boolean(G.currentSayTake && G.attackingTeam === partnerTeamID && G.currentSayTake.sayContreLevel === 'contre')}
               selectedTrumpModeDefaultValue={lastBottomPlayerTakeSaid ? lastBottomPlayerTakeSaid.trumpMode : undefined}
               sayableExpectedPoints={validExpectedPoints.filter(expectedPoint => isSayableExpectedPoints(expectedPoint, G.currentSayTake?.expectedPoints))}
             />
