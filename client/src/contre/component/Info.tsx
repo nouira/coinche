@@ -1,6 +1,8 @@
 import React, {useContext} from 'react';
 import {I18nContext} from '../context/i18n';
-import {BelotAnnounce, ExpectedPoints, PlayerID, TeamID, TrumpMode, RoundResult} from '../../shared/contre';
+import {BelotAnnounce, ExpectedPoints, PlayerID, TeamID, TrumpMode, getCardColorAssociatedToTrumpMode} from '../../shared/contre';
+import { SuitComponent } from './Card';
+import { Descriptions, Statistic } from 'antd/lib';
 
 type ComponentProps = {
   player: string,
@@ -28,26 +30,35 @@ export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
 
   return (
     <React.Fragment>
-      <div>{player}</div>
-      <div>{i18n.Info.currentTeamScore('partner', partnerTeamPoints, howManyPointsATeamMustReachToEndTheGame)}</div>
-      <div>{i18n.Info.currentTeamScore('opponent', opponentTeamPoints, howManyPointsATeamMustReachToEndTheGame)}</div>
-      {attackingTeamID && trumpMode && expectedPoints && (
-        <React.Fragment>
-          <div>{i18n.Info.currentAttackingTeam(attackingTeamID === partnerTeamID ? 'partner' : 'opponent')}</div>
-          <div>{i18n.Info.currentGoal(trumpMode, expectedPoints)}</div>
-        </React.Fragment>
-      )}
-      {Object.entries(displayablePlayersAnnounces)
-        .filter(([_, { announces }]) => announces.length > 0)
-        .map(([playerID, { playerName, announces }]) => (
-          <div key={playerID}>
-            <span>{i18n.Info.announcesOf(playerName)}</span>
-            {announces.map(a => (
-              <div key={a.id}>{`- ${i18n.announce.id[a.id]}`}</div>
-            ))}
-          </div>
-        ))
-      }
+      <Descriptions title={player} bordered size="small" column={1}>
+        <Descriptions.Item label={i18n.teamType.partner}>
+          <Statistic value={partnerTeamPoints} suffix={`/ ${howManyPointsATeamMustReachToEndTheGame}`} />
+        </Descriptions.Item>
+        <Descriptions.Item label={i18n.teamType.opponent}>
+          <Statistic value={opponentTeamPoints} suffix={`/ ${howManyPointsATeamMustReachToEndTheGame}`} />
+        </Descriptions.Item>
+        {attackingTeamID && trumpMode && expectedPoints && (
+          <React.Fragment>
+            <Descriptions.Item label={i18n.Info.attackingTeam}>
+              {attackingTeamID === partnerTeamID ? i18n.teamType.partner : i18n.teamType.opponent}
+            </Descriptions.Item>
+            <Descriptions.Item label={i18n.Info.currentGoal}>
+              {expectedPoints} <SuitComponent cardColor={getCardColorAssociatedToTrumpMode(trumpMode)} />
+            </Descriptions.Item>
+          </React.Fragment>
+        )}
+        {Object.entries(displayablePlayersAnnounces)
+          .filter(([_, { announces }]) => announces.length > 0)
+          .map(([playerID, { playerName, announces }]) => (
+            <Descriptions.Item key={playerID} label={i18n.Info.announcesOf(playerName)}>
+              {announces.map(a => (
+                <div key={a.id}>{`- ${i18n.announce.id[a.id]}`}</div>
+              ))}
+            </Descriptions.Item>
+          ))
+        }
+      </Descriptions>
+
     </React.Fragment>
   );
 };

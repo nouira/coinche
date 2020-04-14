@@ -1,7 +1,8 @@
 import React, {useContext} from 'react';
-import {Card, SecretCard} from '../../../shared/coinche';
+import {Card, SecretCard, CardColor} from '../../../shared/contre';
 import {ThemeContext} from '../../context/theme';
 import {UnicodeCardComponent} from './UnicodeCard';
+import { SvgCardComponent, SvgSuitComponent } from './SvgCard';
 
 export type PlayCardState =
   | 'playable' // when the player must play a card and the card is playable
@@ -11,6 +12,7 @@ export type PlayCardState =
 export type CardComponentProps = {
   card: Card | SecretCard,
   playCardState?: PlayCardState,
+  isTrump?: boolean,
   onCardClick?: () => void,
   onSayBelotClick?: () => void,
   onDontSayBelotClick?: () => void,
@@ -21,5 +23,23 @@ export const CardComponent: React.FunctionComponent<CardComponentProps> = (props
   switch (theme.cardDisplay) {
     case 'unicode':
       return <UnicodeCardComponent {...props}/>;
+    case 'svg':
+      return <SvgCardComponent {...props} />;
+  }
+};
+
+export type SuitComponentProps = {
+  cardColor: CardColor | undefined,
+  onSuitClick?: () => void,
+}
+
+export const SuitComponent: React.FunctionComponent<SuitComponentProps> = (props) => {
+  const theme = useContext(ThemeContext);
+
+  switch (theme.cardDisplay) {
+    case 'unicode':
+      return null;
+    case 'svg':
+      return <SvgSuitComponent {...props} />;
   }
 };

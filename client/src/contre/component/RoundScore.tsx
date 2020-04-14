@@ -1,6 +1,9 @@
 import React, {useContext} from 'react';
 import { TeamID, RoundResults, TotalPointsDetails, SayTake } from '../../shared/contre';
 import {I18nContext} from '../context/i18n';
+import { Table, Descriptions, Button, Typography } from 'antd/lib';
+
+const { Text } = Typography;
 
 type PointsDetailComponentProps = {
   pointsDetail: TotalPointsDetails | undefined,
@@ -8,7 +11,7 @@ type PointsDetailComponentProps = {
 }
 const PointsDetailDisplay: React.FunctionComponent<PointsDetailComponentProps> = ({
   pointsDetail,
-  currentSayTake
+  currentSayTake,
 }) => {
   const i18n = useContext(I18nContext);
 
@@ -27,7 +30,6 @@ type ComponentProps = {
   partnerTeamID : TeamID,
   opponentTeamID : TeamID,
   roundScore: RoundResults | undefined,
-  endAck: () => void,
   currentSayTake: SayTake | undefined
 };
 
@@ -35,44 +37,90 @@ export const RoundScore: React.FunctionComponent<ComponentProps> = ({
   roundScore,
   partnerTeamID,
   opponentTeamID,
-  endAck,
-  currentSayTake
+  currentSayTake,
 }) => {
   const i18n = useContext(I18nContext);
 
+  const columns = [
+    {
+      title: '',
+      dataIndex: 'description',
+      key: 'description',
+      render: (text: string) => (<th>{text}</th>),
+    },
+    {
+      title: i18n.Score.getTeamName('partner'),
+      dataIndex: 'partner',
+      key: 'partner',
+    },
+    {
+      title: i18n.Score.getTeamName('opponent'),
+      dataIndex: 'opponent',
+      key: 'opponent',
+    },
+  ];
+  const data = [
+    {
+      key: 'CardsPoints',
+      description: i18n.Score.cardsPoints,
+      partner: roundScore?.TeamsResult[partnerTeamID].PointsDetail?.CardsPoints,
+      opponent: roundScore?.TeamsResult[opponentTeamID].PointsDetail?.CardsPoints,
+    },
+    {
+      key: 'ExtraPoints',
+      description: i18n.Score.extraPoints,
+      partner: roundScore?.TeamsResult[partnerTeamID].PointsDetail?.ExtraPoints,
+      opponent: roundScore?.TeamsResult[opponentTeamID].PointsDetail?.ExtraPoints,
+    },
+    {
+      key: 'BelotAnnouncePoints',
+      description: i18n.Score.belotAnnouncePoints,
+      partner: roundScore?.TeamsResult[partnerTeamID].PointsDetail?.BelotAnnouncePoints,
+      opponent: roundScore?.TeamsResult[opponentTeamID].PointsDetail?.BelotAnnouncePoints,
+    },
+    {
+      key: 'TotalPoints',
+      description: i18n.Score.totalPoints,
+      partner: roundScore?.TeamsResult[partnerTeamID].PointsDetail?.TotalPoints,
+      opponent: roundScore?.TeamsResult[opponentTeamID].PointsDetail?.TotalPoints,
+    },
+    {
+      key: 'RoundedTotalPoints',
+      description: i18n.Score.roundedTotalPoints,
+      partner: roundScore?.TeamsResult[partnerTeamID].PointsDetail?.RoundedTotalPoints,
+      opponent: roundScore?.TeamsResult[opponentTeamID].PointsDetail?.RoundedTotalPoints,
+    },
+  ];
+
   return (
     <div className="roundScore">
-      <p className="contract">{i18n.Score.getSayTake(currentSayTake)}</p>
-      <p className="contractResult">{i18n.Score.getTakeResult(roundScore?.ContractResult)}</p>
-      <p className="header totalPoints">{i18n.Score.detailTotalPoints}</p>
-      <p className="header scoredPoints">{i18n.Score.scoredPoints}</p>
-      <p className="header partnerTeam">{i18n.Score.getTeamName('partner')}</p>
-      <p className="header opponentTeam">{i18n.Score.getTeamName('opponent')}</p>
-
-      <p className="detailedTotalPoints cardsPoints">{i18n.Score.cardsPoints}</p>
-      <p className="detailedTotalPoints extraPoints">{i18n.Score.extraPoints}</p>
-      <p className="detailedTotalPoints belotPoints">{i18n.Score.belotAnnouncePoints}</p>
-      <p className="detailedTotalPoints totalPoints">{i18n.Score.totalPoints}</p>
-      <p className="detailedTotalPoints roundedPoints">{i18n.Score.roundedTotalPoints}</p>
-
-      <p className="partnerTeam cardsPoints">{roundScore?.TeamsResult[partnerTeamID].PointsDetail?.CardsPoints}</p>
-      <p className="partnerTeam extraPoints">{roundScore?.TeamsResult[partnerTeamID].PointsDetail?.ExtraPoints}</p>
-      <p className="partnerTeam belotPoints">{roundScore?.TeamsResult[partnerTeamID].PointsDetail?.BelotAnnouncePoints}</p>
-      <p className="partnerTeam totalPoints">{roundScore?.TeamsResult[partnerTeamID].PointsDetail?.TotalPoints}</p>
-      <p className="partnerTeam roundedPoints">{roundScore?.TeamsResult[partnerTeamID].PointsDetail?.RoundedTotalPoints}</p>
-
-      <p className="partnerTeam scoredPoints">{roundScore?.TeamsResult[partnerTeamID].ScoredPoints}</p>
-
-      <p className="opponentTeam cardsPoints">{roundScore?.TeamsResult[opponentTeamID].PointsDetail?.CardsPoints}</p>
-      <p className="opponentTeam extraPoints">{roundScore?.TeamsResult[opponentTeamID].PointsDetail?.ExtraPoints}</p>
-      <p className="opponentTeam belotPoints">{roundScore?.TeamsResult[opponentTeamID].PointsDetail?.BelotAnnouncePoints}</p>
-      <p className="opponentTeam totalPoints">{roundScore?.TeamsResult[opponentTeamID].PointsDetail?.TotalPoints}</p>
-      <p className="opponentTeam roundedPoints">{roundScore?.TeamsResult[opponentTeamID].PointsDetail?.RoundedTotalPoints}</p>
-
-      <p className="opponentTeam scoredPoints">{roundScore?.TeamsResult[opponentTeamID].ScoredPoints}</p>
-      <div className="footer">
-        <button onClick={() => endAck()}>{i18n.Score.Button}</button>
-      </div>
+      <Descriptions bordered size="small"
+        column={{ sm: 3, xs: 1 }}>
+        <Descriptions.Item label={i18n.Score.contract} span={2}>{i18n.Score.getSayTake(currentSayTake)}</Descriptions.Item>
+        <Descriptions.Item label={i18n.Score.result}>{i18n.Score.getTakeResult(roundScore?.ContractResult)}</Descriptions.Item>
+        <Descriptions.Item label={i18n.Score.detailTotalPoints}>
+          <Table
+            columns={columns}
+            dataSource={data}
+            pagination={false}
+            summary={() => {
+              return (
+                <>
+                  <tr>
+                    <th>{i18n.Score.scoredPoints}</th>
+                    <td>
+                      <Text>{roundScore?.TeamsResult[partnerTeamID].ScoredPoints}</Text>
+                    </td>
+                    <td>
+                      <Text>{roundScore?.TeamsResult[opponentTeamID].ScoredPoints}</Text>
+                    </td>
+                  </tr>
+                </>
+              );
+            }}
+          />
+        </Descriptions.Item>
+      </Descriptions>
     </div>
   );
 };

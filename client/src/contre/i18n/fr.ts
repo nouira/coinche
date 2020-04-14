@@ -28,25 +28,29 @@ export const fr: I18n = {
     getTeamName: (teamType) => translatedTeamType[teamType],
     getSayTake: (sayTake) => {
       if(sayTake === undefined)
-        return "";
-      const contract = `Contrat : ${sayTake.expectedPoints === Capot ? "Capot" : sayTake.expectedPoints} ${translatedTrumpMode[sayTake.trumpMode]}`;
-      const contre = `${sayTake.sayContreLevel === undefined ? "" : "Contré"}${sayTake.sayContreLevel === "surcontre" ? "X2" : ""}`;
+        return '';
+      const contract = `${sayTake.expectedPoints === Capot ? 'Capot' : sayTake.expectedPoints} ${translatedTrumpMode[sayTake.trumpMode]}`;
+      const contre = `${sayTake.sayContreLevel === undefined ? '' : 'Contré'}${sayTake.sayContreLevel === 'surcontre' ? 'X2' : ''}`;
       return `${contract} ${contre}`;
     },
-    getTakeResult: (result) => result === "successed" ? "Réussi" : "Échec",
-    detailTotalPoints: "Détail points",
-    scoredPoints: "Score",
-    cardsPoints: "Cartes",
-    extraPoints: "Dernier pli",
-    belotAnnouncePoints: "Belote",
-    totalPoints: "Total",
-    roundedTotalPoints: "Arrondi",
-    Button: 'OK'
+    getTakeResult: (result) => result === 'successed' ? 'Réussi' : 'Échec',
+    contract: 'Contrat',
+    result: 'Résultat',
+    detailTotalPoints: 'Détail points',
+    scoredPoints: 'Score',
+    cardsPoints: 'Cartes',
+    extraPoints: 'Dernier pli',
+    belotAnnouncePoints: 'Belote',
+    totalPoints: 'Total',
+    roundedTotalPoints: 'Arrondi',
+    Button: 'OK',
+    capot: 'Capot',
   },
   Info: {
     currentTeamScore: (teamType, teamPoints, howManyPointsATeamMustReachToEndTheGame) => `${translatedTeamType[teamType]} : ${teamPoints}/${howManyPointsATeamMustReachToEndTheGame}`,
     currentAttackingTeam: (teamType) => `Attaquant : ${translatedTeamType[teamType]}`,
-    currentGoal: (trumpMode, expectedPoints) => `Objectif : ${expectedPoints} ${translatedTrumpMode[trumpMode]}`,
+    attackingTeam: 'Attaquant',
+    currentGoal: `Objectif`,
     announcesOf: (playerName) => `Annonces de ${playerName} :`,
   },
   TalkMenu: {

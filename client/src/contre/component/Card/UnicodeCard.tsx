@@ -1,5 +1,5 @@
 import React from 'react';
-import {CardColor, CardName, secretCard} from '../../../shared/coinche';
+import {CardColor, CardName, secretCard} from '../../../shared/contre';
 import {CardComponentProps} from './index';
 
 const getUnicode = (card: CardComponentProps['card']): string => {

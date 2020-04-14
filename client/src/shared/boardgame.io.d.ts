@@ -34,6 +34,15 @@ declare module 'boardgame.io/core' {
     };
   }
 
+  export interface StageConfig {
+    moves?: MoveMap;
+    next?: string;
+  }
+
+  export interface StageMap {
+    [stageName: string]: StageConfig;
+  }
+
   export interface TurnConfig<
     GameState = DefaultGameState,
     PlayerID = DefaultPlayerID,
@@ -42,6 +51,7 @@ declare module 'boardgame.io/core' {
     onBegin?: (G: GameState, ctx: Context<PlayerID, PhaseID>) => GameState | void;
     onEnd?: (G: GameState, ctx: Context<PlayerID, PhaseID>) => GameState | void;
     endIf?: (G: GameState, ctx: Context<PlayerID, PhaseID>) => boolean | { next: PlayerID };
+    stages?: StageMap;
     order?: {
       playOrder?: (G: GameState, ctx: Context<PlayerID, PhaseID>) => PlayerID[];
       first: (G: GameState, ctx: Context<PlayerID, PhaseID>) => number;

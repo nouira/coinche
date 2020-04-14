@@ -9,6 +9,7 @@ import {game as coincheGame} from './shared/coinche';
 import {BoardComponent as coincheBoard} from './coinche/Client';
 import {game as contreGame} from './shared/contre';
 import {BoardComponent as contreBoard} from './contre/Client';
+import 'antd/dist/antd.css';
 
 const App: React.FunctionComponent = () => {
   if (!process.env.REACT_APP_API_BASE_URL) {
@@ -24,7 +25,7 @@ const App: React.FunctionComponent = () => {
             lobbyServer={process.env.REACT_APP_API_BASE_URL}
             gameComponents={[
               { game: coincheGame, board: coincheBoard },
-              { game: contreGame, board: contreBoard }
+              { game: contreGame, board: contreBoard },
             ]}
           />
         </Route>

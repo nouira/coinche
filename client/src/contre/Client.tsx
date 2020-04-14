@@ -20,6 +20,7 @@ import {
   isSayableExpectedPoints,
   howManyPlayers,
   validExpectedPoints,
+  Capot,
 } from '../shared/contre';
 import {PlayerScreenPosition, getPlayerIDForPosition} from './service/getPlayerIDForPosition';
 import {getPlayerNameByID} from './service/getPlayerNameByID';
@@ -32,6 +33,8 @@ import {PlayedCardsComponent} from './component/PlayedCards';
 import {RoundScore} from './component/RoundScore';
 import {InfoComponent} from './component/Info';
 import {HiddenStackedCardsComponent} from './component/HiddenStackedCards';
+
+import { Row, Col, Button, Card as CardContainer } from 'antd';
 
 const getTurnIndicatorClassForPosition = (
   position: PlayerScreenPosition,
@@ -112,7 +115,14 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
 
   const sayTake = (selectedExpectedPoint: ExpectedPoints, selectedTrumpMode: TrumpMode) => {
     moves.sayTake(selectedExpectedPoint, selectedTrumpMode);
-    moves.endTurn();
+    if (selectedExpectedPoint === Capot) {
+      moves.waitBeforeMovingToNextPhase();
+      setTimeout(() => {
+        moves.moveToNextPhase();
+      }, 1000);
+    } else {
+      moves.endTurn();
+    }
   };
   const sayContre = () => {
     const isCurrentSayTakeContredBeforeSayingContre = Boolean(G.currentSayTake && G.currentSayTake.sayContreLevel === 'contre');
@@ -157,146 +167,128 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
     }
   };
 
-  const endAck = () => {
-    G.playersAck[bottomPlayerID] = true;
-    moves.endTurn();
-  }
-  return (
-    <div className="board">
-      <div className="info">
-        <InfoComponent
-          player={getPlayerNameByID(gameMetadata, bottomPlayerID)}
-          partnerTeamID={partnerTeamID}
-          partnerTeamPoints={G.teamsPoints[partnerTeamID]}
-          opponentTeamPoints={G.teamsPoints[opponentTeamID]}
-          howManyPointsATeamMustReachToEndTheGame={G.howManyPointsATeamMustReachToEndTheGame}
-          attackingTeamID={G.currentSayTake && G.attackingTeam}
-          trumpMode={G.currentSayTake?.trumpMode}
-          expectedPoints={G.currentSayTake?.expectedPoints}
-          displayablePlayersAnnounces={displayableAnnouncesByPlayerID}
-        />
-      </div>
-
-      <div className={`otherPlayer player top ${getTurnIndicatorClassForPosition('top', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
-        <OtherPlayerCardsComponent cards={G.playersCards[topPlayerID]} />
-        <div className="additionalCards">
-          {currentPhaseIsTalk && G.dealer === topPlayerID && (
-            <HiddenStackedCardsComponent cards={G.availableCards} />
-          )}
-          {currentPhaseIsPlayCards && (
-            <HiddenStackedCardsComponent cards={G.wonTeamsCards[partnerTeamID]} />
-          )}
-        </div>
-        <div className="playerName">{getPlayerNameByID(gameMetadata, topPlayerID)}</div>
-        <div className="playerTalks">
-          {currentPhaseIsTalk && (!currentPlayerIsTopPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[topPlayerID] && (
-            <PlayerSaidComponent playerSaid={G.playersSaid[topPlayerID]}/>
-          )}
-          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && topPlayerSaidAnnounces.length > 0 && (
-            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={topPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
-          )} */}
-        </div>
-      </div>
-
-      <div className={`otherPlayer player left ${getTurnIndicatorClassForPosition('left', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
-        <OtherPlayerCardsComponent cards={G.playersCards[leftPlayerID]} />
-        <div className="additionalCards">
-          {currentPhaseIsTalk && G.dealer === leftPlayerID && (
-            <HiddenStackedCardsComponent cards={G.availableCards} />
-          )}
-          {currentPhaseIsPlayCards && (
-            <HiddenStackedCardsComponent cards={G.wonTeamsCards[opponentTeamID]} />
-          )}
-        </div>
-        <div className="playerName">{getPlayerNameByID(gameMetadata, leftPlayerID)}</div>
-        <div className="playerTalks">
-          {currentPhaseIsTalk && (!currentPlayerIsLeftPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[leftPlayerID] && (
-            <PlayerSaidComponent playerSaid={G.playersSaid[leftPlayerID]}/>
-          )}
-          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && leftPlayerSaidAnnounces.length > 0 && (
-            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={leftPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
-          )} */}
-        </div>
-      </div>
-
-      <div className={`otherPlayer player right ${getTurnIndicatorClassForPosition('right', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
-        <OtherPlayerCardsComponent cards={G.playersCards[rightPlayerID]} />
-        <div className="additionalCards">
-          {currentPhaseIsTalk && G.dealer === rightPlayerID && (
-            <HiddenStackedCardsComponent cards={G.availableCards} />
-          )}
-        </div>
-        <div className="playerName">{getPlayerNameByID(gameMetadata, rightPlayerID)}</div>
-        <div className="playerTalks">
-          {currentPhaseIsTalk && (!currentPlayerIsRightPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[rightPlayerID] && (
-            <PlayerSaidComponent playerSaid={G.playersSaid[rightPlayerID]}/>
-          )}
-          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && rightPlayerSaidAnnounces.length > 0 && (
-            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={rightPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
-          )} */}
-        </div>
-      </div>
-
-      <div className="playedCardsArea">
-        <PlayedCardsComponent bottomPlayerID={bottomPlayerID} playedCards={playedCards} />
-      </div>
-      {currentPhaseIsDisplayResults && (
-        <div className="playedCardsArea">
-          <RoundScore partnerTeamID={partnerTeamID} opponentTeamID={opponentTeamID} roundScore={G.roundResults}
-            currentSayTake={G.currentSayTake}
-            endAck={endAck} />
-        </div>
-      )}
-
-      <div className={`myPlayer player bottom ${getTurnIndicatorClassForPosition('bottom', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
-        <div className="playerTalks">
-          {currentPhaseIsTalk && (!currentPlayerIsBottomPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[bottomPlayerID] && (
-            <PlayerSaidComponent playerSaid={G.playersSaid[bottomPlayerID]}/>
-          )}
-          {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && bottomPlayerSaidAnnounces.length > 0 && (
-            <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={bottomPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
-          )} */}
-        </div>
-        <div className="menu">
-          {!G.__isWaitingBeforeMovingToNextPhase && currentPhaseIsPlayCards && isNotFirstPlayCardTurn && (
-            <PreviousCardsPlayedMenuComponent
-              isDisplayedPreviousCardsPlayed={isDisplayedPreviousCardsPlayed}
-              toggleIsDisplayedPreviousCardsPlayed={() => setIsDisplayedPreviousCardsPlayed(!isDisplayedPreviousCardsPlayed)}
-            />
-          )}
-          {!G.__isWaitingBeforeMovingToNextPhase && !isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && currentPlayerIsBottomPlayer && (
-            <TalkMenuComponent
-              saySkip={saySkip}
-              canSayTake={!(G.currentSayTake && G.currentSayTake.sayContreLevel === 'contre' && G.currentSayTake.playerID === playerID)}
-              sayTake={sayTake}
-              sayContre={sayContre}
-              canSayContre={Boolean(G.currentSayTake && G.attackingTeam === opponentTeamID && G.currentSayTake.sayContreLevel !== 'contre')}
-              canSaySurcontre={Boolean(G.currentSayTake && G.attackingTeam === partnerTeamID && G.currentSayTake.sayContreLevel === 'contre')}
-              selectedTrumpModeDefaultValue={lastBottomPlayerTakeSaid ? lastBottomPlayerTakeSaid.trumpMode : undefined}
-              sayableExpectedPoints={validExpectedPoints.filter(expectedPoint => isSayableExpectedPoints(expectedPoint, G.currentSayTake?.expectedPoints))}
-            />
-          )}
-        </div>
-        <div className="currentPlayerIndicator" />
-        {!isDisplayedPreviousCardsPlayed && (
-          <MyCardsComponent
-            cards={G.playerCards}
-            isMyTurnToPlayACard={!G.__isWaitingBeforeMovingToNextPhase && currentPhaseIsPlayCards && currentPlayerIsBottomPlayer}
-            playCard={playCard}
-            trumpMode={G.currentSayTake?.trumpMode}
-            playersCardPlayedInCurrentTurn={G.playersCardPlayedInCurrentTurn}
-            firstPlayerInCurrentTurn={G.firstPlayerInCurrentTurn}
-            playerPartner={getPlayerPartner(bottomPlayerID)}
-            sayBelotOrNot={moves.sayBelotOrNot}
-            belotCards={(belotCards.length && belotCards.every(bc => G.playerCards.some(pc => isSameCard(bc, pc)))) ? belotCards : []}
-          />
+  const playerArea = (playerId: PlayerID, teamId: TeamID, screenPosition: PlayerScreenPosition, showWonStack: boolean) => (
+    <div className={`otherPlayer player ${screenPosition} ${getTurnIndicatorClassForPosition(screenPosition, currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
+      <OtherPlayerCardsComponent cards={G.playersCards[playerId]} />
+      <div className="additionalCards">
+        {currentPhaseIsTalk && G.dealer === playerId && (
+          <HiddenStackedCardsComponent cards={G.availableCards} />
         )}
-        <div className="additionalCards">
-          {!isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && G.dealer === bottomPlayerID && (
-            <HiddenStackedCardsComponent cards={G.availableCards} />
-          )}
-        </div>
+        {currentPhaseIsPlayCards && showWonStack && (
+          <HiddenStackedCardsComponent cards={G.wonTeamsCards[teamId]} />
+        )}
+      </div>
+      <div className="playerName">{getPlayerNameByID(gameMetadata, playerId)}</div>
+      <div className="playerTalks">
+        {currentPhaseIsTalk && (!currentPlayerIsTopPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[playerId] && (
+          <PlayerSaidComponent playerSaid={G.playersSaid[playerId]}/>
+        )}
+        {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && topPlayerSaidAnnounces.length > 0 && (
+          <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={topPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+        )} */}
       </div>
     </div>
+  );
+
+  return (
+    <React.Fragment>
+      <Row>
+        <Col span={6}>
+          <InfoComponent
+            player={getPlayerNameByID(gameMetadata, bottomPlayerID)}
+            partnerTeamID={partnerTeamID}
+            partnerTeamPoints={G.teamsPoints[partnerTeamID]}
+            opponentTeamPoints={G.teamsPoints[opponentTeamID]}
+            howManyPointsATeamMustReachToEndTheGame={G.howManyPointsATeamMustReachToEndTheGame}
+            attackingTeamID={G.currentSayTake && G.attackingTeam}
+            trumpMode={G.currentSayTake?.trumpMode}
+            expectedPoints={G.currentSayTake?.expectedPoints}
+            displayablePlayersAnnounces={displayableAnnouncesByPlayerID}
+          />
+        </Col>
+        <Col span={10} offset={1}>
+          {playerArea(topPlayerID, partnerTeamID, 'top', true)}
+        </Col>
+      </Row>
+      <Row>
+        <Col span={7}>
+          {playerArea(leftPlayerID, opponentTeamID, 'left', true)}
+        </Col>
+        <Col span={10}>
+          {!currentPhaseIsDisplayResults && (<PlayedCardsComponent bottomPlayerID={bottomPlayerID} playedCards={playedCards} trumpMode={G.currentSayTake?.trumpMode} />)}
+          {currentPhaseIsDisplayResults && (
+            <CardContainer
+              title="Score final"
+              actions={[
+                !G.resultsConfirmations[bottomPlayerID] && (<Button onClick={() => {
+                  if(!G.resultsConfirmations[bottomPlayerID])
+                    moves.confirmResults(bottomPlayerID);
+                }
+                }>Ok</Button>),
+              ]}
+            >
+              <RoundScore partnerTeamID={partnerTeamID} opponentTeamID={opponentTeamID} roundScore={G.roundResults}
+                currentSayTake={G.currentSayTake} />
+            </CardContainer>
+          )}
+        </Col>
+        <Col span={7}>
+          {playerArea(rightPlayerID, opponentTeamID, 'right', false)}
+        </Col>
+      </Row>
+      <Row>
+        {!G.__isWaitingBeforeMovingToNextPhase && currentPhaseIsPlayCards && isNotFirstPlayCardTurn && (
+          <PreviousCardsPlayedMenuComponent
+            isDisplayedPreviousCardsPlayed={isDisplayedPreviousCardsPlayed}
+            toggleIsDisplayedPreviousCardsPlayed={() => setIsDisplayedPreviousCardsPlayed(!isDisplayedPreviousCardsPlayed)}
+          />
+        )}
+        {!G.__isWaitingBeforeMovingToNextPhase && !isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && currentPlayerIsBottomPlayer && (
+          <TalkMenuComponent
+            saySkip={saySkip}
+            canSayTake={!(G.currentSayTake && G.currentSayTake.sayContreLevel === 'contre')}
+            sayTake={sayTake}
+            sayContre={sayContre}
+            canSayContre={Boolean(G.currentSayTake && G.attackingTeam === opponentTeamID && G.currentSayTake.sayContreLevel !== 'contre')}
+            canSaySurcontre={Boolean(G.currentSayTake && G.attackingTeam === partnerTeamID && G.currentSayTake.sayContreLevel === 'contre')}
+            selectedTrumpModeDefaultValue={lastBottomPlayerTakeSaid ? lastBottomPlayerTakeSaid.trumpMode : undefined}
+            sayableExpectedPoints={validExpectedPoints.filter(expectedPoint => isSayableExpectedPoints(expectedPoint, G.currentSayTake?.expectedPoints))}
+          />
+        )}
+      </Row>
+      <Row>
+        <Col offset={5} span={15}>
+          <div className={`myPlayer player bottom ${getTurnIndicatorClassForPosition('bottom', currentPhaseNeedsToWaitForAPlayerMove, currentPlayerIsTopPlayer, currentPlayerIsLeftPlayer, currentPlayerIsRightPlayer, currentPlayerIsBottomPlayer)}`}>
+            <div className="playerTalks">
+              {currentPhaseIsTalk && (!currentPlayerIsBottomPlayer || G.__isWaitingBeforeMovingToNextPhase) && G.playersSaid[bottomPlayerID] && (
+                <PlayerSaidComponent playerSaid={G.playersSaid[bottomPlayerID]}/>
+              )}
+              {/* {currentPhaseIsPlayCards && !isNotFirstPlayCardTurn && bottomPlayerSaidAnnounces.length > 0 && (
+                <PlayerSaidAnnounceGroupsComponent saidAnnounceGroups={bottomPlayerSaidAnnounces.map(a => a.announceGroup!)}/>
+              )} */}
+            </div>
+            <div className="currentPlayerIndicator" />
+            {!isDisplayedPreviousCardsPlayed && (
+              <MyCardsComponent
+                cards={G.playerCards}
+                isMyTurnToPlayACard={!G.__isWaitingBeforeMovingToNextPhase && currentPhaseIsPlayCards && currentPlayerIsBottomPlayer}
+                playCard={playCard}
+                trumpMode={G.currentSayTake?.trumpMode}
+                playersCardPlayedInCurrentTurn={G.playersCardPlayedInCurrentTurn}
+                firstPlayerInCurrentTurn={G.firstPlayerInCurrentTurn}
+                playerPartner={getPlayerPartner(bottomPlayerID)}
+                sayBelotOrNot={moves.sayBelotOrNot}
+                belotCards={(belotCards.length && belotCards.every(bc => G.playerCards.some(pc => isSameCard(bc, pc)))) ? belotCards : []}
+              />
+            )}
+            <div className="additionalCards">
+              {!isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && G.dealer === bottomPlayerID && (
+                <HiddenStackedCardsComponent cards={G.availableCards} />
+              )}
+            </div>
+          </div>
+        </Col>
+      </Row>
+    </React.Fragment>
   );
 };

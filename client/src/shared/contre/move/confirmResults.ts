@@ -8,6 +8,10 @@ import {
 export default (
   G: GameState,
   ctx: Context<PlayerID, PhaseID>,
+  playerID: PlayerID,
 ): void => {
-  G.playersAck[ctx.currentPlayer] = true;
+  G.resultsConfirmations[playerID] = true;
+  ctx.events.endStage();
+  if(ctx.currentPlayer == playerID)
+    ctx.events.endTurn();
 };

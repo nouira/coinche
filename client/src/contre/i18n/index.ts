@@ -11,6 +11,8 @@ export type I18n = {
     getTeamName: (teamType: TeamType) => string;
     getSayTake: (sayTake: SayTake | undefined) => string;
     getTakeResult: (resulst: ContractResult | undefined) => string;
+    contract: string;
+    result: string;
     detailTotalPoints: string;
     scoredPoints: string;
     Button: string;
@@ -19,11 +21,13 @@ export type I18n = {
     belotAnnouncePoints: string;
     totalPoints: string;
     roundedTotalPoints: string;
+    capot: string;
   },
   Info: {
     currentTeamScore: (teamType: TeamType, teamPoints: number, howManyPointsATeamMustReachToEndTheGame: number) => string;
     currentAttackingTeam: (teamType: TeamType) => string;
-    currentGoal: (trumpMode: TrumpMode, expectedPoints: number) => string;
+    attackingTeam: string;
+    currentGoal: string;
     announcesOf: (playerName: string) => string;
   },
   TalkMenu: {

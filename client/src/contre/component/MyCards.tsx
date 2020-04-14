@@ -7,6 +7,7 @@ import {
   Moves,
   PlayerID,
   TrumpMode,
+  getCardColorAssociatedToTrumpMode,
 } from '../../shared/contre';
 import {sortCards} from '../service/sortCards';
 import {CardComponent} from './Card';
@@ -38,6 +39,7 @@ export const MyCardsComponent: React.FunctionComponent<ComponentProps> = ({
       {sortCards(cards).map(card => {
         const key = `${card.color}${card.name}`;
         const isBelotCard = belotCards.some(bc => isSameCard(bc, card));
+        const isTrump = trumpMode && card.color === getCardColorAssociatedToTrumpMode(trumpMode);
         const playCardState = (isMyTurnToPlayACard && trumpMode)
           ? (isPlayableCard(card, cards, trumpMode, playersCardPlayedInCurrentTurn, firstPlayerInCurrentTurn, playerPartner) ? 'playable' : 'forbidden')
           : undefined;
@@ -54,6 +56,7 @@ export const MyCardsComponent: React.FunctionComponent<ComponentProps> = ({
         return <CardComponent
           key={key}
           card={card}
+          isTrump={isTrump}
           playCardState={playCardState}
           onCardClick={onCardClick}
           onSayBelotClick={onSayBelotClick}

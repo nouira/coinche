@@ -57,5 +57,6 @@ declare module 'boardgame.io/react' {
       game: object;
       board: ComponentType<any>;
     }[];
+    debug?: boolean;
   }>;
 }
