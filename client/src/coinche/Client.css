@@ -36,6 +36,11 @@
   display: inline-block;
 }
 .card {
+  /**
+   * @TODO: remove extra space around cards to be able to use something else than a white background
+   *   see https://preethisam.com/2018/06/25/how-to-use-emojis-as-icons/ to use transparent color and text-shadow
+   *   see https://medium.com/eightshapes-llc/cropping-away-negative-impacts-of-line-height-84d744e016ce to remove height space
+   */
   font-size: 100px;
   display: inline-block;
 }
@@ -85,7 +90,8 @@
     "menu                   menu          menu           "
     "currentPlayerIndicator myCards       additionalCards";
   grid-template-columns: 50px 1fr 50px;
-  grid-template-rows: 60px 30px 120px;
+  grid-template-rows: 65px 30px 125px;
+  overflow-x: hidden;
 }
 .myPlayer > .playerTalks {
   grid-area: myPlayerTalks;
@@ -106,7 +112,7 @@
   position: relative;
 }
 .myPlayer.currentPlayer .currentPlayerIndicator::before {
-  content: '\1f447';
+  content: '👇';
   font-size: 40px;
   position: absolute;
   top: 10px;
@@ -114,7 +120,7 @@
   transform: rotate(-125deg);
 }
 .myPlayer.currentPlayer .currentPlayerIndicator::after {
-  content: '\1f447';
+  content: '👇';
   font-size: 40px;
   position: absolute;
   top: 50px;
@@ -238,18 +244,16 @@
   z-index: 1;
   transform: rotate(36deg);
 }
-.otherPlayer.currentPlayer .otherPlayerCards::before {
-  content: '\1f449';
+.otherPlayer.currentPlayer .otherPlayerCards .cardWrapper:nth-child(1)::before {
+  content: '👉';
   position: absolute;
-  top: 50%;
-  left: 55px;
+  top: 35%;
+  left: -45px;
   font-size: 40px;
   z-index: 10;
 }
 .hiddenAdditionalCards {
-  /* @TODO: don't need it if constraint by parent size */
-  margin-left: -25px;
-  margin-top: 15px;
+  margin-left: -20px;
   transform: scale(.5);
 }
 .hiddenAdditionalCards .cardWrapper {
@@ -259,29 +263,80 @@
   background: white;
   z-index: 1;
 }
+.hiddenAdditionalCards .cardWrapper:nth-child(1) {
+  z-index: 12;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(2) {
+  z-index: 11;
+}
 .hiddenAdditionalCards .cardWrapper:nth-child(3) {
-  z-index: 3;
-  transform: rotate(36deg);
+  z-index: 10;
 }
 .hiddenAdditionalCards .cardWrapper:nth-child(4) {
-  z-index: 4;
-  transform: rotate(-36deg);
+  z-index: 9;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(5) {
+  z-index: 8;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(6) {
+  z-index: 7;
 }
 .hiddenAdditionalCards .cardWrapper:nth-child(7) {
-  z-index: 7;
-  transform: rotate(24deg);
+  z-index: 6;
 }
 .hiddenAdditionalCards .cardWrapper:nth-child(8) {
-  z-index: 8;
-  transform: rotate(-24deg);
+  z-index: 5;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(9) {
+  z-index: 4;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(10) {
+  z-index: 3;
 }
 .hiddenAdditionalCards .cardWrapper:nth-child(11) {
-  z-index: 11;
-  transform: rotate(12deg);
+  z-index: 2;
 }
 .hiddenAdditionalCards .cardWrapper:nth-child(12) {
-  z-index: 12;
-  transform: rotate(-12deg);
+  z-index: 1;
+}
+.hiddenAdditionalCards .cardWrapper .card {
+  color: transparent;
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(1) .card {
+  text-shadow: 5px 6px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(2) .card {
+  text-shadow: 6px 7px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(3) .card {
+  text-shadow: 7px 8px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(4) .card {
+  text-shadow: 8px 9px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(5) .card {
+  text-shadow: 9px 10px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(6) .card {
+  text-shadow: 10px 11px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(7) .card {
+  text-shadow: 11px 12px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(8) .card {
+  text-shadow: 12px 13px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(9) .card {
+  text-shadow: 13px 14px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(10) .card {
+  text-shadow: 14px 15px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(11) .card {
+  text-shadow: 15px 16px rgba(0,0,0,.8);
+}
+.hiddenAdditionalCards .cardWrapper:nth-child(12) .card {
+  text-shadow: 16px 17px rgba(0,0,0,.8);
 }
 
 /**
@@ -405,4 +460,104 @@
   display: flex;
   justify-content: space-between;
   max-width: 250px;
+}
+
+/**
+ */
+.modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow-x: hidden;
+  z-index: 100;
+  transform: translateY(calc(-100vh + 50px));
+  transition: all .5s ease-in-out;
+}
+.modal.opened {
+  transform: translateY(0);
+}
+.modal .content {
+  height: calc(100vh - 50px);
+  box-sizing: border-box;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(0,0,0,.9);
+  color: white;
+}
+.modal .toggleButtons {
+  width: 55px;
+  border-left: 3px solid black;
+  margin: 0 0 0 auto;
+  color: white;
+}
+.modal .toggleButton {
+  display: inline-block;
+  width: 55px;
+  height: 50px;
+  box-sizing: border-box;
+  border-bottom: 3px solid black;
+  border-right: 3px solid black;
+  text-align: center;
+  cursor: pointer;
+}
+.modal .toggleButton.active {
+  background: black;
+}
+.modal .toggleButton span {
+  font-size: 40px;
+}
+
+/**
+ */
+.gameHistory {
+  font-size: 20px;
+}
+.gameHistory ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.gameHistory .round {
+  margin-bottom: 20px;
+}
+.gameHistory .round + .round {
+  padding-top: 15px;
+  border-top: 3px solid white;
+}
+.gameHistory .roundTitle {
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-decoration: underline;
+  text-transform: uppercase;
+}
+.gameHistory .sectionTitle {
+  text-decoration: underline;
+}
+.gameHistory .teamPointsAtTheEndOfRound {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.gameHistory .teamPointsAtTheEndOfRound .sectionTitle {
+  font-weight: bold;
+}
+.gameHistory .roundDetailToggleButton button {
+  width: 100%;
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.gameHistory .roundDetail {
+  margin-top: 5px;
+  border: 1px solid white;
+  padding: 10px;
+}
+.gameHistory .goalPoints,
+.gameHistory .endOfRoundPoints,
+.gameHistory .turnsPoints,
+.gameHistory .announcesPoints,
+.gameHistory .turnsDetail,
+.gameHistory .announcesDetail {
+  margin-bottom: 10px;
 }
