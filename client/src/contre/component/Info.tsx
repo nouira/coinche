@@ -30,8 +30,8 @@ export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
 
   return (
     <React.Fragment>
-      <Descriptions title={player} bordered size="small" column={1}>
-        <Descriptions.Item label={i18n.teamType.partner}>
+      <Descriptions title={player} bordered size="small" column={2} layout="vertical">
+        <Descriptions.Item label={i18n.teamType.partner} >
           <Statistic value={partnerTeamPoints} suffix={`/ ${howManyPointsATeamMustReachToEndTheGame}`} />
         </Descriptions.Item>
         <Descriptions.Item label={i18n.teamType.opponent}>

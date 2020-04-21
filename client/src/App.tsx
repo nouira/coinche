@@ -11,28 +11,28 @@ import {game as contreGame} from './shared/contre';
 import {BoardComponent as contreBoard} from './contre/Client';
 import 'antd/dist/antd.css';
 
-const App: React.FunctionComponent = () => {
-  if (!process.env.REACT_APP_API_BASE_URL) {
-    throw new Error('REACT_APP_API_BASE_URL env var must be set');
-  }
+// const App: React.FunctionComponent = () => {
+//   if (!process.env.REACT_APP_API_BASE_URL) {
+//     throw new Error('REACT_APP_API_BASE_URL env var must be set');
+//   }
 
-  return (
-    <Router>
-      <Switch>
-        <Route path="/">
-          <Lobby
-            gameServer={process.env.REACT_APP_API_BASE_URL}
-            lobbyServer={process.env.REACT_APP_API_BASE_URL}
-            gameComponents={[
-              { game: coincheGame, board: coincheBoard },
-              { game: contreGame, board: contreBoard },
-            ]}
-          />
-        </Route>
-      </Switch>
-    </Router>
-  );
-};
-// const App = Client({ game: contreGame, board: contreBoard, numPlayers: 4 });
+//   return (
+//     <Router>
+//       <Switch>
+//         <Route path="/">
+//           <Lobby
+//             gameServer={process.env.REACT_APP_API_BASE_URL}
+//             lobbyServer={process.env.REACT_APP_API_BASE_URL}
+//             gameComponents={[
+//               { game: coincheGame, board: coincheBoard },
+//               { game: contreGame, board: contreBoard },
+//             ]}
+//           />
+//         </Route>
+//       </Switch>
+//     </Router>
+//   );
+// };
+const App = Client({ game: contreGame, board: contreBoard, numPlayers: 4 });
 
 export default App;

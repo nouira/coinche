@@ -3,58 +3,6 @@ import {CardColor, CardName, secretCard, Card, SecretCard} from '../../../shared
 import {CardComponentProps, SuitComponentProps} from './index';
 import cards from './cards.svg';
 
-const getCardSvgName = (card: CardComponentProps['card']): string => {
-  if (card === secretCard) {
-    return 'alternate-back';
-  }
-
-  let suit;
-  switch (card.color) {
-    case CardColor.Spade:
-      suit = 'spade';
-      break;
-    case CardColor.Club:
-      suit = 'club';
-      break;
-    case CardColor.Diamond:
-      suit = 'diamond';
-      break;
-    case CardColor.Heart:
-      suit = 'heart';
-      break;
-  }
-
-  let rank;
-  switch (card.name) {
-    case CardName.Ace:
-      rank = '1';
-      break;
-    case CardName.Seven:
-      rank =  '7';
-      break;
-    case CardName.Eight:
-      rank =  '8';
-      break;
-    case CardName.Nine:
-      rank =  '9';
-      break;
-    case CardName.Ten:
-      rank =  '10';
-      break;
-    case CardName.Jack:
-      rank =  'jack';
-      break;
-    case CardName.Queen:
-      rank =  'queen';
-      break;
-    case CardName.King:
-      rank =  'king';
-      break;
-  }
-
-  return `${suit}_${rank}`;
-};
-
 const getPlayCardStateClass = (playCardState: CardComponentProps['playCardState']): string => {
   switch (playCardState) {
     case undefined:
@@ -73,14 +21,18 @@ export const SvgCardComponent: React.FunctionComponent<CardComponentProps> = ({
   onCardClick,
   onSayBelotClick,
   onDontSayBelotClick,
+  style,
 }) => {
   return (
-    <span className={`cardWrapper ${getPlayCardStateClass(playCardState)}`}>
+    <span className={`cardWrapper ${getPlayCardStateClass(playCardState)}`} style={style}>
       <svg width="84" height="122" onClick={onCardClick}
-			  xmlns="http://www.w3.org/2000/svg"
-			  xmlnsXlink="http://www.w3.org/1999/xlink" >
-			  {/* <use xlinkHref={`${cards}#${getCardSvgName(card)}`} transform="scale(0.5)" /> */}
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink" >
         {CardSuit(card, isTrump)}
+        {playCardState === 'forbidden' && (
+          <g transform="scale(0.5) translate(0,238)" opacity=".6" >
+            {baseCard(335.14999, 972.54999, '#333')}
+          </g>)}
       </svg>
       {onSayBelotClick && onDontSayBelotClick && (
         <React.Fragment>
@@ -117,7 +69,7 @@ const CardSuit = (card: Card | SecretCard, isTrump: boolean | undefined) => {
   let cardStyle = styleBlack;
   if (card === secretCard) {
     cardComponent = (
-      <g id="alternate-back" transform="translate(-333.89999,-736.02999)">
+      <g id="alternate-back" transform="translate(-333.89999,-736.02999)" fill="#1890ff">
         {baseCard(335.14999, 972.54999, '#fff')}
         <use xlinkHref={`${cards}#rect3250`} />
         <use xlinkHref={`${cards}#rect3252`} />
@@ -220,13 +172,13 @@ const CardSuit = (card: Card | SecretCard, isTrump: boolean | undefined) => {
         cardComponent = (
           <g transform="translate(1.25,236.52)">
             <use xlinkHref={`${cards}#${isTrump ? 'base_trump' : 'base'}`} x="0" y="0" width="100%" height="100%" />
-            <use xlinkHref={`${cards}#ace`} x="4" y="-199.117" style={cardStyle} width="100%" height="100%" />
-            <use xlinkHref={`${cards}#ace`} x="163.575" y="-30.280001" style={cardStyle} transform="matrix(-1,0,0,-1,327.15,-60.56)" width="100%" height="100%" />
+            <use xlinkHref={`${cards}#n_1`} x="7" y="-199.117" style={cardStyle} width="100%" height="100%" />
+            <use xlinkHref={`${cards}#n_1`} x="166.575" y="-30.280001" style={cardStyle} transform="matrix(-1,0,0,-1,327.15,-60.56)" width="100%" height="100%" />
             <use xlinkHref={`${cards}#${suit}`} x="13.65" y="-185.117" transform="matrix(-1,0,0,-1,27.3,-370.234)" width="100%" height="100%" />
             <use xlinkHref={`${cards}#${suit}`} x="153.925" y="-44.279999" width="100%" height="100%" />
             <use xlinkHref={`${cards}#${suit}`} x="34.911499" y="-50.653599" transform="matrix(-2.4,0,0,-2.4,167.5752,-243.13728)" width="100%" height="100%" />
-            {(card.color === CardColor.Spade) &&
-              <use xlinkHref="#laurel" transform="matrix(0.0875,0,0,0.0875,44.623,-159.8)" x="0" y="0" width="100%" height="100%" />
+            {(card.color === CardColor.Club) &&
+              <use xlinkHref={`${cards}#laurel`} transform="matrix(0.0875,0,0,0.0875,44.623,-159.8)" x="0" y="0" width="100%" height="100%" />
             }
           </g>
         );

@@ -34,9 +34,21 @@ export const MyCardsComponent: React.FunctionComponent<ComponentProps> = ({
   sayBelotOrNot,
   belotCards,
 }) => {
+  var styles = [
+    { zIndex: 1014, transform: 'rotate(-4deg)' },
+    { zIndex: 1015, transform: 'rotate(4deg)' },
+    { zIndex: 1013, transform: 'rotate(-6deg) translateY(5px)' },
+    { zIndex: 1016, transform: 'rotate(6deg) translateY(5px)' },
+    { zIndex: 1012, transform: 'rotate(-8deg) translateY(13px)' },
+    { zIndex: 1017, transform: 'rotate(8deg) translateY(12px)' },
+    { zIndex: 1011, transform: 'rotate(-10deg) translateY(22px)' },
+    { zIndex: 1018, transform: 'rotate(10deg) translateY(22px)' },
+  ];
+  var cardStyles = styles.slice(0, cards.length).sort((a,b) => a.zIndex - b.zIndex);
+
   return (
     <div className="myCards">
-      {sortCards(cards).map(card => {
+      {sortCards(cards).map((card, index) => {
         const key = `${card.color}${card.name}`;
         const isBelotCard = belotCards.some(bc => isSameCard(bc, card));
         const isTrump = trumpMode && card.color === getCardColorAssociatedToTrumpMode(trumpMode);
@@ -53,15 +65,18 @@ export const MyCardsComponent: React.FunctionComponent<ComponentProps> = ({
           playCard(card);
         } : undefined;
 
-        return <CardComponent
-          key={key}
-          card={card}
-          isTrump={isTrump}
-          playCardState={playCardState}
-          onCardClick={onCardClick}
-          onSayBelotClick={onSayBelotClick}
-          onDontSayBelotClick={onDontSayBelotClick}
-        />;
+        return (
+          <CardComponent
+            style={cardStyles[index]}
+            key={key}
+            card={card}
+            isTrump={isTrump}
+            playCardState={playCardState}
+            onCardClick={onCardClick}
+            onSayBelotClick={onSayBelotClick}
+            onDontSayBelotClick={onDontSayBelotClick}
+          />
+        );
       })}
     </div>
   );

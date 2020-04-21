@@ -61,7 +61,6 @@
 }
 .cardWrapper.forbidden {
   cursor: not-allowed;
-  opacity: .4;
 }
 .cardWrapper.playable {
   cursor: pointer;
@@ -85,7 +84,7 @@
     "menu                   menu          menu           "
     "currentPlayerIndicator myCards       additionalCards";
   grid-template-columns: 50px 1fr 50px;
-  grid-template-rows: 60px 30px 120px;
+  grid-template-rows: 60px 30px 100px;
 }
 .myPlayer > .playerTalks {
   grid-area: myPlayerTalks;
@@ -124,6 +123,43 @@
 .myCards {
   text-align: center;
 }
+
+.myCards .cardWrapper {
+  height: 100px;
+  width: 50px;
+}
+/* .myCards .cardWrapper:nth-child(1) {
+  z-index: 1011;
+  transform: rotate(-10deg) translateY(22px);
+}
+.myCards .cardWrapper:nth-child(2) {
+  z-index: 1012;
+  transform: rotate(-8deg) translateY(13px);
+}
+.myCards .cardWrapper:nth-child(3) {
+  z-index: 1013;
+  transform: rotate(-6deg) translateY(5px);
+}
+.myCards .cardWrapper:nth-child(4) {
+  z-index: 1014;
+  transform: rotate(-4deg);
+}
+.myCards .cardWrapper:nth-child(5) {
+  z-index: 1015;
+  transform: rotate(4deg);
+}
+.myCards .cardWrapper:nth-child(6) {
+  z-index: 1016;
+  transform: rotate(6deg) translateY(5px);
+}
+.myCards .cardWrapper:nth-child(7) {
+  z-index: 1017;
+  transform: rotate(8deg) translateY(12px);
+}
+.myCards .cardWrapper:nth-child(8) {
+  z-index: 1018;
+  transform: rotate(10deg) translateY(22px);
+} */
 
 /**
  */
@@ -409,4 +445,40 @@
   display: flex;
   justify-content: space-between;
   max-width: 250px;
+}
+
+.contractPoints .selectedExpectedPoint {
+  background-color: #daedff;
+  border: #1890ff solid 1px;
+  border-left-width: 0;
+  border-right-width: 0;
+  line-height: 1.5715;
+  min-width: 50px;
+  height: 32px;
+  padding: 4px 15px;
+  font-size: 14px;
+  text-align: center;
+}
+.contractPoints .buttonPlus,
+.contractPoints .buttonMinus,
+.contractPoints .buttonMinus.ant-btn-primary[disabled],
+.contractPoints .buttonPlus.ant-btn-primary[disabled] {
+  border: #1890ff solid 1px;
+}
+
+.contractPoints .buttonPlus,
+.contractPoints .buttonPlus.ant-btn-primary[disabled] {
+  border-radius: 0 2px 2px 0;
+}
+
+.contractPoints .buttonMinus,
+.contractPoints .buttonMinus.ant-btn-primary[disabled] {
+  border-radius: 2px 0 0 2px;
+}
+
+.talkMenu .ant-modal-footer {
+  text-align: center;
+}
+.talkMenu .ant-modal-footer .ant-btn-primary {
+  margin-left: 50px;
 }
