@@ -5,36 +5,67 @@ import {
   Moves,
   PhaseID,
   PlayerID,
+  getCardColorAssociatedToTrumpMode,
 } from '../../shared/contre';
 import {I18nContext} from '../context/i18n';
+import { Popover} from 'antd';
+import { PlayerScreenPosition } from '../service/getPlayerIDForPosition';
+import { TooltipPlacement } from 'antd/lib/tooltip';
+import { SuitComponent } from './Card';
 
 type ComponentProps = {
   playerSaid: BoardProps<GameStatePlayerView, Moves, PlayerID, PhaseID>['G']['playersSaid'][PlayerID.North],
+  playerScreenPosition: PlayerScreenPosition,
 };
 export const PlayerSaidComponent: React.FunctionComponent<ComponentProps> = ({
   playerSaid,
+  playerScreenPosition,
 }) => {
-  const rootElementClassName = 'playerSaid';
-
   const i18n = useContext(I18nContext);
 
-  if (!playerSaid) {
-    return null;
+  var content = null;
+  let placement : TooltipPlacement ;
+  switch (playerScreenPosition) {
+    case 'bottom':
+      placement='top';
+      break;
+    case 'top':
+      placement='bottom';
+      break;
+    case 'left':
+      placement='topRight';
+      break;
+    case 'right':
+      placement='topLeft';
+      break;
   }
 
-  if (playerSaid === 'skip') {
-    return <div className={rootElementClassName}>{i18n.PlayerSaid.skip}</div>;
-  }
 
-  if (playerSaid === 'contre') {
-    return <div className={rootElementClassName}>{i18n.PlayerSaid.contre}</div>;
-  }
+  content = (<div>
+    {playerSaid.map((said) => {
+      if (said === 'skip') {
+        return (<div>{i18n.PlayerSaid.skip}</div>);
+      }
+      else if (said === 'contre') {
+        return (<div>{i18n.PlayerSaid.contre}</div>);
+      }
+      else if (said === 'surcontre') {
+        return (<div>{i18n.PlayerSaid.surcontre}</div>);
+      }
+      else {
+        return (
+          <div className="playerSaidExpected">
+            <div>{said.expectedPoints}</div>
+            <SuitComponent cardColor={getCardColorAssociatedToTrumpMode(said.trumpMode)} />
+          </div>);
+      }
+    })}
+  </div>);
 
-  if (playerSaid === 'surcontre') {
-    return <div className={rootElementClassName}>{i18n.PlayerSaid.surcontre}</div>;
-  }
 
   return (
-    <div className={rootElementClassName}>{`${playerSaid.expectedPoints} ${i18n.trumpMode[playerSaid.trumpMode]}`}</div>
+    <Popover placement={placement} content={content} visible={true}>
+      <div className="playerSaidHolder"></div>
+    </Popover>
   );
 };

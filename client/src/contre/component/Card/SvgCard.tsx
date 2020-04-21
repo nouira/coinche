@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import {CardColor, CardName, secretCard, Card, SecretCard} from '../../../shared/contre';
-import {CardComponentProps, SuitComponentProps} from './index';
+import {CardComponentProps, MiniCardComponentProps, SuitComponentProps} from './index';
 import cards from './cards.svg';
 
 const getPlayCardStateClass = (playCardState: CardComponentProps['playCardState']): string => {
@@ -24,7 +24,7 @@ export const SvgCardComponent: React.FunctionComponent<CardComponentProps> = ({
   style,
 }) => {
   return (
-    <span className={`cardWrapper ${getPlayCardStateClass(playCardState)}`} style={style}>
+    <div className={`cardWrapper ${getPlayCardStateClass(playCardState)}`} style={style}>
       <svg width="84" height="122" onClick={onCardClick}
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink" >
@@ -40,7 +40,7 @@ export const SvgCardComponent: React.FunctionComponent<CardComponentProps> = ({
           <span className="belotChooseButton dontSay" onClick={onDontSayBelotClick} role="img" aria-label="play">🔇</span>
         </React.Fragment>
       )}
-    </span>
+    </div>
   );
 };
 
@@ -49,7 +49,7 @@ const baseCard = (
   y: number,
   fill: string | undefined,
 ) => {
-  var style = {
+  const style = {
     fill: fill ?? '#FFFFFF',
     stroke: '#000000',
     strokeWidth: 2.5,
@@ -369,6 +369,7 @@ const CardSuit = (card: Card | SecretCard, isTrump: boolean | undefined) => {
 export const SvgSuitComponent: React.FunctionComponent<SuitComponentProps> =({
   cardColor,
   onSuitClick,
+  size= 'normal',
 }) => {
   let suit;
   switch (cardColor) {
@@ -385,12 +386,93 @@ export const SvgSuitComponent: React.FunctionComponent<SuitComponentProps> =({
       suit = 'heart';
       break;
   }
+  let transform, width, height;
+  switch (size) {
+    case 'normal':
+      transform = 'scale(1.25)';
+      width = height = 20;
+      break;
+    case 'small':
+      transform = 'scale(0.75)';
+      width = height = 12;
+      break;
+    case 'big':
+      transform = 'scale(1.5)';
+      width = height = 30;
+      break;
 
+  }
   return (
-    <svg width="20" height="20" onClick={onSuitClick}
+    <svg width={height} height={width} onClick={onSuitClick}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink" >
-      <use xlinkHref={`${cards}#suit-${suit}`} transform="scale(1.25)" />
+      <use xlinkHref={`${cards}#suit-${suit}`} transform={transform} />
     </svg>
+  );
+};
+
+export const SvgMiniCardComponent: React.FunctionComponent<MiniCardComponentProps> =({
+  card,
+  isTrump,
+  isWinner,
+  style,
+}) => {
+
+  let suit;
+  let color;
+  switch (card?.color) {
+    case CardColor.Spade:
+      suit = 'spade';
+      color = 'black';
+      break;
+    case CardColor.Club:
+      suit = 'club';
+      color = 'black';
+      break;
+    case CardColor.Diamond:
+      suit = 'diamond';
+      color = 'red';
+      break;
+    case CardColor.Heart:
+      suit = 'heart';
+      color = 'red';
+      break;
+  }
+  let name;
+  switch (card.name) {
+    case CardName.Ace:
+      name = '1';
+      break;
+    case CardName.Seven:
+      name = '7';
+      break;
+    case CardName.Eight:
+      name = '8';
+      break;
+    case CardName.Nine:
+      name = '9';
+      break;
+    case CardName.Ten:
+      name = '10';
+      break;
+    case CardName.Jack:
+      name = 'V';
+      break;
+    case CardName.Queen:
+      name = 'D';
+      break;
+    case CardName.King:
+      name = 'R';
+      break;
+  }
+  return (
+    <div className={`miniCard ${isTrump ?'trump':''} ${isWinner ?'winner':''}`}>
+      <div className={`name ${color}`}>{name}</div>
+      <svg width="20" height="20"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink" >
+        <use xlinkHref={`${cards}#suit-${suit}`} transform="scale(1.25)" />
+      </svg>
+    </div>
   );
 };

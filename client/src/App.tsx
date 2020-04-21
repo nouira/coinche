@@ -33,6 +33,7 @@ import 'antd/dist/antd.css';
 //     </Router>
 //   );
 // };
+// const App = Client({ game: coincheGame, board: coincheBoard, numPlayers: 4 });
 const App = Client({ game: contreGame, board: contreBoard, numPlayers: 4 });
 
 export default App;

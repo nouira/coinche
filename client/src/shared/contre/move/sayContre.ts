@@ -19,7 +19,7 @@ export default (
     G.currentSayTake.sayContreLevel = 'surcontre';
     G.playersSaid = {
       ...G.playersSaid,
-      [ctx.currentPlayer]: 'surcontre',
+      [ctx.currentPlayer]: [...G.playersSaid[ctx.currentPlayer], 'surcontre'],
     };
     return;
   }
@@ -27,6 +27,6 @@ export default (
   G.currentSayTake.sayContreLevel = 'contre';
   G.playersSaid = {
     ...G.playersSaid,
-    [ctx.currentPlayer]: 'contre',
+    [ctx.currentPlayer]: [...G.playersSaid[ctx.currentPlayer], 'contre'],
   };
 };

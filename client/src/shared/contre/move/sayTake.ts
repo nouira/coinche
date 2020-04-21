@@ -39,7 +39,7 @@ export default (
   };
   G.playersSaid = {
     ...G.playersSaid,
-    [ctx.currentPlayer]: { expectedPoints, trumpMode },
+    [ctx.currentPlayer]: [...G.playersSaid[ctx.currentPlayer], { expectedPoints, trumpMode }],
   };
   G.lastPlayersTakeSaid = {
     ...G.lastPlayersTakeSaid,

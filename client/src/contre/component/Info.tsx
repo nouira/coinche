@@ -1,42 +1,79 @@
 import React, {useContext} from 'react';
 import {I18nContext} from '../context/i18n';
-import {BelotAnnounce, ExpectedPoints, PlayerID, TeamID, TrumpMode, getCardColorAssociatedToTrumpMode} from '../../shared/contre';
-import { SuitComponent } from './Card';
-import { Descriptions, Statistic } from 'antd/lib';
+import {CurrentResult, PlayerID, TeamID, TrumpMode} from '../../shared/contre';
+import {Card as AntCard, Table} from 'antd/lib';
+import {PlayedCardsMiniComponent} from './PlayedCards';
 
 type ComponentProps = {
-  player: string,
+  playerId: PlayerID,
   partnerTeamID: TeamID;
   partnerTeamPoints: number;
   opponentTeamPoints: number;
   howManyPointsATeamMustReachToEndTheGame: number;
-  attackingTeamID?: TeamID;
   trumpMode?: TrumpMode;
-  expectedPoints?: ExpectedPoints;
-  displayablePlayersAnnounces: Record<PlayerID, { playerName: string; announces: (BelotAnnounce)[] }>;
+  currentResult: CurrentResult;
 };
-export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
-  player,
-  partnerTeamID,
-  partnerTeamPoints,
-  opponentTeamPoints,
-  howManyPointsATeamMustReachToEndTheGame,
-  attackingTeamID,
-  trumpMode,
-  expectedPoints,
-  displayablePlayersAnnounces,
-}) => {
+export const InfoComponent: React.FunctionComponent<ComponentProps> = (
+  {
+    playerId,
+    partnerTeamID,
+    partnerTeamPoints,
+    opponentTeamPoints,
+    howManyPointsATeamMustReachToEndTheGame,
+    trumpMode,
+    currentResult,
+  }) => {
+  let opponentTeamID = partnerTeamID == TeamID.EastWest ? TeamID.NorthSouth : TeamID.EastWest;
   const i18n = useContext(I18nContext);
-
+  const columns = [
+    {
+      title: i18n.Score.getTeamName('partner'),
+      dataIndex: 'partner',
+      key: 'partner',
+    },
+    {
+      title: i18n.Score.getTeamName('opponent'),
+      dataIndex: 'opponent',
+      key: 'opponent',
+    },
+  ];
+  let data = [
+    {
+      key: 'score',
+      partner: partnerTeamPoints,
+      opponent: opponentTeamPoints,
+    },
+    {
+      key: 'roundScore',
+      partner: currentResult?.points[partnerTeamID],
+      opponent: currentResult?.points[opponentTeamID],
+    },
+  ];
+  console.log(currentResult?.points[partnerTeamID]);
+  console.log(currentResult);
   return (
     <React.Fragment>
-      <Descriptions title={player} bordered size="small" column={2} layout="vertical">
-        <Descriptions.Item label={i18n.teamType.partner} >
-          <Statistic value={partnerTeamPoints} suffix={`/ ${howManyPointsATeamMustReachToEndTheGame}`} />
-        </Descriptions.Item>
-        <Descriptions.Item label={i18n.teamType.opponent}>
-          <Statistic value={opponentTeamPoints} suffix={`/ ${howManyPointsATeamMustReachToEndTheGame}`} />
-        </Descriptions.Item>
+      <div className="info">
+        <AntCard className="score" size="small" title={howManyPointsATeamMustReachToEndTheGame} >
+          <div className='header'>
+            <span>{i18n.Score.getTeamName('partner')}</span>
+            <span>{i18n.Score.getTeamName('opponent')}</span>
+          </div>
+          { (currentResult?.points[partnerTeamID] > 0 || currentResult?.points[opponentTeamID] > 0) && (
+            <div className='roundPoints'>
+              <span>{currentResult?.points[partnerTeamID]}</span>
+              <span>{currentResult?.points[opponentTeamID]}</span>
+            </div>)}
+          <div className='points'>
+            <span>{partnerTeamPoints}</span>
+            <span>{opponentTeamPoints}</span>
+          </div>
+        </AntCard>
+        <AntCard className="lastRound" size="small">
+          <PlayedCardsMiniComponent bottomPlayerID={playerId} trumpMode={trumpMode} playedCards={currentResult.lastTurnCards} winner={currentResult.lastWinner} />
+        </AntCard>
+      </div>
+      {/* <Descriptions title={player} bordered size="small" column={2} layout="vertical">
         {attackingTeamID && trumpMode && expectedPoints && (
           <React.Fragment>
             <Descriptions.Item label={i18n.Info.attackingTeam}>
@@ -47,18 +84,7 @@ export const InfoComponent: React.FunctionComponent<ComponentProps> = ({
             </Descriptions.Item>
           </React.Fragment>
         )}
-        {Object.entries(displayablePlayersAnnounces)
-          .filter(([_, { announces }]) => announces.length > 0)
-          .map(([playerID, { playerName, announces }]) => (
-            <Descriptions.Item key={playerID} label={i18n.Info.announcesOf(playerName)}>
-              {announces.map(a => (
-                <div key={a.id}>{`- ${i18n.announce.id[a.id]}`}</div>
-              ))}
-            </Descriptions.Item>
-          ))
-        }
-      </Descriptions>
-
+      </Descriptions> */}
     </React.Fragment>
   );
 };

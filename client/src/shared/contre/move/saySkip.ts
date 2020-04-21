@@ -10,8 +10,9 @@ export default (
   ctx: Context<PlayerID, PhaseID>,
 ): void => {
   G.numberOfSuccessiveSkipSaid++;
+
   G.playersSaid = {
     ...G.playersSaid,
-    [ctx.currentPlayer]: 'skip',
+    [ctx.currentPlayer]: [...G.playersSaid[ctx.currentPlayer], 'skip'],
   };
 };

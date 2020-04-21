@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Card, SecretCard, CardColor} from '../../../shared/contre';
 import {ThemeContext} from '../../context/theme';
 import {UnicodeCardComponent} from './UnicodeCard';
-import { SvgCardComponent, SvgSuitComponent } from './SvgCard';
+import { SvgCardComponent, SvgSuitComponent, SvgMiniCardComponent } from './SvgCard';
 
 export type PlayCardState =
   | 'playable' // when the player must play a card and the card is playable
@@ -32,6 +32,7 @@ export const CardComponent: React.FunctionComponent<CardComponentProps> = (props
 export type SuitComponentProps = {
   cardColor: CardColor | undefined,
   onSuitClick?: () => void,
+  size?: 'normal' | 'small' | 'big'
 }
 
 export const SuitComponent: React.FunctionComponent<SuitComponentProps> = (props) => {
@@ -42,5 +43,22 @@ export const SuitComponent: React.FunctionComponent<SuitComponentProps> = (props
       return null;
     case 'svg':
       return <SvgSuitComponent {...props} />;
+  }
+};
+export type MiniCardComponentProps = {
+  card: Card,
+  isTrump?: boolean,
+  isWinner?: boolean,
+  style?: object,
+};
+
+export const MiniCardComponent: React.FunctionComponent<MiniCardComponentProps> = (props) => {
+  const theme = useContext(ThemeContext);
+
+  switch (theme.cardDisplay) {
+    case 'unicode':
+      return null;
+    case 'svg':
+      return <SvgMiniCardComponent {...props} />;
   }
 };

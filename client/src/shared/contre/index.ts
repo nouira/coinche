@@ -13,6 +13,8 @@ import saySkip from './move/saySkip';
 import sayTake from './move/sayTake';
 import sayContre from './move/sayContre';
 import confirmResults from './move/confirmResults';
+import {calculatePoints, getRoundResults} from './service/pointsCounter';
+import {getTurnWinner} from '../coinche/service/winnerResolver';
 
 export enum CardColor {
   Spade = 'Spade',
@@ -58,7 +60,6 @@ export enum PhaseID {
   Talk = 'Talk',
   PlayCards = 'PlayCards',
   CountPoints = 'CountPoints',
-  DisplayResults = 'DisplayResults',
 }
 export enum TeamID {
   NorthSouth = 'NorthSouth',
@@ -100,19 +101,21 @@ export interface TotalPointsDetails {
   BelotAnnouncePoints: number,
   TotalPoints: number,
   RoundedTotalPoints: number,
+  ScoredPoints: number,
 }
-export type ContractResult = 'failed' | 'successed';
-
-export interface RoundResult {
-  PointsDetail: TotalPointsDetails,
-  ScoredPoints: number
-}
+export type ContractResult = 'failed' | 'succeeded';
 
 export interface RoundResults {
   ContractResult: ContractResult | undefined;
-  TeamsResult: Record<TeamID, RoundResult>;
+  TeamsResult: Record<TeamID, TotalPointsDetails>;
 }
 
+export interface CurrentResult {
+  lastTurnCards: Record<PlayerID, Card> | undefined;
+  lastWinner: PlayerID | undefined;
+  points: Record<TeamID, number>;
+}
+export type PlayerSaid = 'skip' | SayTakeLevel | SayContreLevel;
 export interface GameState {
   // internal state
   __forcedNextPhase?: PhaseID;
@@ -134,7 +137,7 @@ export interface GameState {
   nextDealer: PlayerID;
   attackingTeam: TeamID;
   defensingTeam: TeamID;
-  playersSaid: Record<PlayerID, 'skip' | SayTakeLevel | SayContreLevel | undefined>;
+  playersSaid: Record<PlayerID, PlayerSaid[]>;
   lastPlayersTakeSaid: Record<PlayerID, SayTakeLevel | undefined>;
   numberOfSuccessiveSkipSaid: number;
   currentSayTake: SayTake | undefined;
@@ -145,6 +148,7 @@ export interface GameState {
   firstPlayerInCurrentTurn: PlayerID;
   playersCardPlayedInCurrentTurn: Record<PlayerID, Card | undefined>;
   playersCardPlayedInPreviousTurn: Record<PlayerID, Card> | undefined;
+  currentResult: CurrentResult
 }
 // @TODO: hide belotAnnounce if not said
 export type GameStatePlayerView = Omit<GameState, 'availableCards' | 'playersCards' | 'playersAnnounces'> & {
@@ -205,11 +209,7 @@ export const getPlayerPartner = (player: PlayerID): PlayerID => {
 export const getPlayerTeam = (player: PlayerID): TeamID => [PlayerID.North, PlayerID.South].includes(player) ? TeamID.NorthSouth : TeamID.EastWest;
 
 export const isSayableExpectedPoints = (expectedPoints: ExpectedPoints, currentSayTakeExpectedPoints: ExpectedPoints | undefined): boolean => expectedPoints > (currentSayTakeExpectedPoints || 0);
-const getExpectedPointsValue = (currentSayTake: SayTake): number => {
-  const trumpModePoints = currentSayTake.expectedPoints;
 
-  return currentSayTake.sayContreLevel ? (currentSayTake.sayContreLevel === 'surcontre' ? trumpModePoints * 4 : trumpModePoints * 2) : trumpModePoints;
-};
 
 export const getBelotCards = (trumpMode: TrumpMode): Card[] => {
   switch (trumpMode) {
@@ -537,24 +537,6 @@ export const getWinningCard = (cards: Card[], trumpMode: TrumpMode, firstCardCol
     return currentWinningCard;
   });
 };
-const getCardPoints = (card: Card, trumpMode: TrumpMode): number => {
-  switch (card.name) {
-    case CardName.Ace:
-      return 11;
-    case CardName.Nine:
-      return trumpMode === getTrumpModeAssociatedToCardColor(card.color) ? 14 : 0;
-    case CardName.Ten:
-      return 10;
-    case CardName.Jack:
-      return trumpMode === getTrumpModeAssociatedToCardColor(card.color) ? 20 : 2;
-    case CardName.Queen:
-      return 3;
-    case CardName.King:
-      return 4;
-    default:
-      return 0;
-  }
-};
 
 export const getWinner = (playersCardPlayedInCurrentTurn: Record<PlayerID, Card | undefined>, trumpMode: TrumpMode, firstCardColor: CardColor): PlayerID => {
   const winningCard = getWinningCard(
@@ -621,23 +603,19 @@ const getDefaultResults = () => ({
   ContractResult: undefined,
   TeamsResult: {
     [TeamID.NorthSouth]: {
-      PointsDetail : {
-        ExtraPoints: 0,
-        CardsPoints: 0,
-        BelotAnnouncePoints: 0,
-        TotalPoints: 0,
-        RoundedTotalPoints: 0,
-      },
-      ScoredPoints: 0},
+      ExtraPoints: 0,
+      CardsPoints: 0,
+      BelotAnnouncePoints: 0,
+      TotalPoints: 0,
+      RoundedTotalPoints: 0,
+      ScoredPoints: 0,
+    },
     [TeamID.EastWest]: {
-      ContractResult: undefined,
-      PointsDetail : {
-        ExtraPoints: 0,
-        CardsPoints: 0,
-        BelotAnnouncePoints: 0,
-        TotalPoints: 0,
-        RoundedTotalPoints: 0,
-      },
+      ExtraPoints: 0,
+      CardsPoints: 0,
+      BelotAnnouncePoints: 0,
+      TotalPoints: 0,
+      RoundedTotalPoints: 0,
       ScoredPoints: 0,
     },
   },
@@ -660,10 +638,10 @@ const getDefaultPlayersCardPlayedInCurrentTurn = () => ({
 });
 const getDefaultPlayersCardPlayedInPreviousTurn = () => undefined;
 const getDefaultPlayersSaid = () => ({
-  [PlayerID.North]: undefined,
-  [PlayerID.East]: undefined,
-  [PlayerID.South]: undefined,
-  [PlayerID.West]: undefined,
+  [PlayerID.North]: [],
+  [PlayerID.East]: [],
+  [PlayerID.South]: [],
+  [PlayerID.West]: [],
 });
 const getDefaultLastPlayersTakeSaid = () => ({
   [PlayerID.North]: undefined,
@@ -671,6 +649,17 @@ const getDefaultLastPlayersTakeSaid = () => ({
   [PlayerID.South]: undefined,
   [PlayerID.West]: undefined,
 });
+
+function getDefaultCurrentResult() {
+  return {
+    lastTurnCards: getDefaultPlayersCardPlayedInPreviousTurn(),
+    lastWinner: undefined,
+    points: {
+      [TeamID.NorthSouth]: 0,
+      [TeamID.EastWest]: 0,
+    },
+  };
+}
 
 export const getSetupGameState = (_: Context<PlayerID, PhaseID>): GameState => {
   const dealer = PlayerID.North;
@@ -703,6 +692,7 @@ export const getSetupGameState = (_: Context<PlayerID, PhaseID>): GameState => {
     resultsConfirmations: getDefaultConfirmationsResult(),
     playersCardPlayedInCurrentTurn: getDefaultPlayersCardPlayedInCurrentTurn(),
     playersCardPlayedInPreviousTurn: getDefaultPlayersCardPlayedInPreviousTurn(),
+    currentResult: getDefaultCurrentResult(),
   };
 };
 const mustMoveFromTalkPhaseToPlayCardsPhase = (currentSayTake: SayTake | undefined, numberOfSuccessiveSkipSaid: number): boolean => {
@@ -917,18 +907,36 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
           throw new Error();
         }
 
-        const winner = getWinner(G.playersCardPlayedInCurrentTurn, G.currentSayTake.trumpMode, G.playersCardPlayedInCurrentTurn[G.firstPlayerInCurrentTurn]!.color);
-        const winnerTeam = getPlayerTeam(winner);
+        const playedCards = Object.values(G.playersCardPlayedInCurrentTurn).filter(c => c !== undefined) as Card[];
+        const winningCard = getWinningCard(
+          playedCards,
+          G.currentSayTake.trumpMode,
+          G.playersCardPlayedInCurrentTurn[G.firstPlayerInCurrentTurn]!.color,
+        );
+        const turnWinner = getTurnWinner(G.playersCardPlayedInCurrentTurn, winningCard);
+        const turnWinnerTeam = getPlayerTeam(turnWinner);
 
         // fill cards played in previous turn
         G.playersCardPlayedInPreviousTurn = {...G.playersCardPlayedInCurrentTurn} as Record<PlayerID, Card>; // cast because G.playersCardPlayedInCurrentTurn can't contain "undefined" values at this point
 
-        // move played cards to winner team cards
-        (Object.values(G.playersCardPlayedInCurrentTurn).filter(c => c !== undefined) as Card[]).forEach(card => G.wonTeamsCards[winnerTeam].push(card));
+        // move played cards to turnWinner team cards
+        playedCards.forEach(card => G.wonTeamsCards[turnWinnerTeam].push(card));
         G.playersCardPlayedInCurrentTurn = getDefaultPlayersCardPlayedInCurrentTurn();
 
-        // winner becomes next first player
-        G.firstPlayerInCurrentTurn = winner;
+        // turnWinner becomes next first player
+        G.firstPlayerInCurrentTurn = turnWinner;
+
+        G.currentResult.lastWinner = turnWinner;
+        G.currentResult.lastTurnCards = G.playersCardPlayedInPreviousTurn;
+        let points = calculatePoints(
+          G.attackingTeam,
+          G.wonTeamsCards[G.attackingTeam],
+          G.defensingTeam,
+          G.wonTeamsCards[G.defensingTeam],
+          G.currentSayTake,
+          G.belotAnnounce);
+        console.log(points);
+        [G.currentResult.points[G.attackingTeam], G.currentResult.points[G.defensingTeam]] = points;
 
         // go to PlayCards phase if not all cards have been played
         if (Object.values(G.wonTeamsCards).reduce((acc, cards) => acc.concat(cards), []).length < howManyCards) {
@@ -936,154 +944,34 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
           return;
         }
 
-        // compute Talk phase points
-        const talkPhasePoints = getExpectedPointsValue(G.currentSayTake);
+        G.roundResults = getRoundResults(
+          G.teamsPoints[G.attackingTeam],
+          G.attackingTeam,
+          G.wonTeamsCards[G.attackingTeam],
+          G.teamsPoints[G.defensingTeam],
+          G.defensingTeam,
+          G.wonTeamsCards[G.defensingTeam],
+          G.currentSayTake,
+          turnWinnerTeam,
+          G.belotAnnounce,
+        );
+        G.currentResult = getDefaultCurrentResult();
 
-        const isCapot = !G.wonTeamsCards[G.defensingTeam].length || !G.wonTeamsCards[G.attackingTeam];
-
-        // last turn (10) extra points
-        G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.ExtraPoints = G.attackingTeam === winnerTeam  ? 10 : 0;
-        G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.ExtraPoints = G.defensingTeam === winnerTeam  ? 10 : 0;
-
-        // compute cards points
-        G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.CardsPoints = G.wonTeamsCards[G.attackingTeam].reduce((acc, card) => acc + getCardPoints(card, G.currentSayTake!.trumpMode), 0);
-        G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.CardsPoints = G.wonTeamsCards[G.defensingTeam].reduce((acc, card) => acc + getCardPoints(card, G.currentSayTake!.trumpMode), 0);
-
-        // compute belot announce points
-        G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.BelotAnnouncePoints = (G.belotAnnounce && G.belotAnnounce.isSaid && getPlayerTeam(G.belotAnnounce.owner) === G.attackingTeam) ? 20 : 0;
-        G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.BelotAnnouncePoints = (G.belotAnnounce && G.belotAnnounce.isSaid && getPlayerTeam(G.belotAnnounce.owner) === G.defensingTeam) ? 20 : 0;
-        const belotAnnouncePoints = (G.belotAnnounce && G.belotAnnounce.isSaid) ? 20 : 0;
-
-        // check which team won the round then assign their points accordingly
-        G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.TotalPoints = (G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.ExtraPoints +
-          G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.CardsPoints +
-          G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.BelotAnnouncePoints);
-        G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.TotalPoints = (G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.ExtraPoints +
-          G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.CardsPoints +
-          G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.BelotAnnouncePoints);
-
-        const attackingTeamTotalPointsRest = G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.TotalPoints % 10;
-        const attackingTeamTotalPointsFloor = Math.floor(G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.TotalPoints / 10) + (attackingTeamTotalPointsRest >= 5 ? 1 : 0);
-        G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.RoundedTotalPoints = attackingTeamTotalPointsFloor * 10;
-
-        const defensingTeamTotalPointsRest = G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.TotalPoints % 10;
-        const defensingTeamTotalPointsFloor = Math.floor(G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.TotalPoints / 10) + (defensingTeamTotalPointsRest >= 5 ? 1 : 0);
-        G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.RoundedTotalPoints = defensingTeamTotalPointsFloor * 10;
-
-        if(isCapot)
-        {
-          if(talkPhasePoints === Capot) {
-            let scoredPoint = Capot * 2;
-            if(isCapot && G.attackingTeam === winnerTeam) {
-              G.teamsPoints[G.attackingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = 0;
-              G.roundResults.ContractResult = 'successed';
-            }
-            else {
-              G.teamsPoints[G.defensingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = 0;
-              G.roundResults.ContractResult = 'failed';
-            }
-          }
-          else {
-            let scoredPoint = Capot;
-            if(G.attackingTeam === winnerTeam) {
-              G.teamsPoints[G.attackingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = 0;
-              G.roundResults.ContractResult = 'successed';
-            }
-            else {
-              G.teamsPoints[G.defensingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = 0;
-              G.roundResults.ContractResult = 'failed';
-            }
-          }
-        }
-        else {
-          if (G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.RoundedTotalPoints >= G.currentSayTake.expectedPoints &&
-                G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.RoundedTotalPoints >= G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.RoundedTotalPoints) {
-            G.roundResults.ContractResult = 'successed';
-            if(G.currentSayTake.sayContreLevel === undefined) {
-              G.teamsPoints[G.attackingTeam] += G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.RoundedTotalPoints;
-              G.teamsPoints[G.defensingTeam] += G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.RoundedTotalPoints;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.RoundedTotalPoints;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.RoundedTotalPoints;
-            }
-            else {
-              let scoredPoint = (G.currentSayTake.sayContreLevel === 'contre' ? ContreScoredPoints : ContreScoredPoints * 2) + belotAnnouncePoints;
-              G.teamsPoints[G.attackingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = 0;
-            }
-          }
-          else {
-            G.roundResults.ContractResult = 'failed';
-            if(G.currentSayTake.sayContreLevel === undefined) {
-              let scoredPoint = G.roundResults.TeamsResult[G.attackingTeam].PointsDetail.TotalPoints + G.roundResults.TeamsResult[G.defensingTeam].PointsDetail.TotalPoints;
-              G.teamsPoints[G.defensingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = 0;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = scoredPoint;
-            }
-            else {
-              let scoredPoint = (G.currentSayTake.sayContreLevel === 'contre' ? ContreScoredPoints : ContreScoredPoints * 2) + belotAnnouncePoints;
-              G.teamsPoints[G.defensingTeam] += scoredPoint;
-              G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints = scoredPoint;
-              G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints = 0;
-            }
-          }
-        }
+        G.teamsPoints[G.attackingTeam] += G.roundResults.TeamsResult[G.attackingTeam].ScoredPoints;
+        G.teamsPoints[G.defensingTeam] += G.roundResults.TeamsResult[G.defensingTeam].ScoredPoints;
 
         // go to Deal phase if the end of the game has not been reached
         const gameWinnerTeam = getGameWinnerTeam(G.teamsPoints, G.howManyPointsATeamMustReachToEndTheGame);
         if (gameWinnerTeam === undefined) {
-          G.__forcedNextPhase = PhaseID.DisplayResults;
+          G.__forcedNextPhase = PhaseID.Deal;
           return;
         }
+
+        console.log(`The winner is... ${gameWinnerTeam || 'both'}!`, G, ctx);
+        ctx.events.endGame();
       },
       endIf: (G) => {
         return G.__forcedNextPhase ? { next: G.__forcedNextPhase } : false;
-      },
-      onEnd: (G) => {
-        G.__forcedNextPhase = undefined;
-      },
-    },
-    [PhaseID.DisplayResults]: {
-      moves : {
-        confirmResults,
-      },
-      turn: {
-        stages: {
-          confirmResult : {
-            moves: {confirmResults},
-          },
-        },
-      },
-      onBegin: (G, ctx) => {
-        G.resultsConfirmations = getDefaultConfirmationsResult();
-
-        ctx.events.setActivePlayers({all: confirmResults, moveLimit: 1});
-
-        const gameWinnerTeam = getGameWinnerTeam(G.teamsPoints, G.howManyPointsATeamMustReachToEndTheGame);
-
-        if (gameWinnerTeam !== undefined) {
-          console.log(`The winner is... ${gameWinnerTeam || 'both'}!`, G, ctx);
-          ctx.events.endGame();
-        }
-        else {
-          G.__forcedNextPhase = PhaseID.Deal;
-        }
-      },
-      endIf: (G, ctx) => {
-        console.log(`CurrentPlayer : ${ctx.currentPlayer} ${Object.values(G.resultsConfirmations)}`);
-
-        if(Object.values(G.resultsConfirmations).every((value) => value))
-          return G.__forcedNextPhase ? { next: G.__forcedNextPhase } : false;;
-
-        return false;
       },
       onEnd: (G) => {
         G.__forcedNextPhase = undefined;

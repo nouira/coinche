@@ -1,33 +1,80 @@
 /**
  */
- .board {
-  display: grid;
-  grid-gap: 10px;
-  grid-template-areas:
-    "info         playerTop       .           "
-    "playerLeft   playedCardsArea playerRight "
-    "playerBottom playerBottom    playerBottom";
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 280px 315px auto;
+.board {
+  margin: 25px auto 50px;
+  background: #fff;
+  width: 1000px;
+  height: 700px;
+  border: slategray solid 1px;
+  text-align: center;
+  overflow: hidden;
+  position:relative;
 }
-.board > .player.top {
-  grid-area: playerTop;
+.info {
+  position: absolute;
+  width: 100%;
 }
-.board > .player.left {
-  grid-area: playerLeft;
+.info .score {
+  float: right;
+  margin-right: 15px;
+  width: 150px;
 }
-.board > .player.right {
-  grid-area: playerRight;
+.info .score .ant-card-body {
+  padding: 0;
 }
-.board > .player.bottom {
-  grid-area: playerBottom;
+.info .score .header,
+.info .score .roundPoints {
+  background: #f0f2f5;
+  font-weight: bold;
+  display: flex;
 }
-.board > .playedCardsArea {
-  grid-area: playedCardsArea;
+.info .score span {
+  display: inline-block;
+  text-align: center;
+  width: 75px;
 }
-.board > .info {
-  grid-area: info;
+.info .score .points {
+  display: flex;
 }
+.info .lastRound {
+  float: left;
+  width: 150px;
+  margin-left: 15px;
+  height: 170px;
+}
+.info .miniCard {
+  border: #000c17 solid 2px;
+  border-radius: 3px;
+  background: #ffffff;
+  padding: 5px;
+  width: 50px;
+  position: absolute;
+  font-weight: bold;
+}
+.miniCard.trump {
+  background: #ffdaba;
+}
+.miniCard.winner {
+  border-color: goldenrod;
+}
+
+.info .top .miniCard {
+  left: 50px;
+  top: 5px;
+}
+.info .left .miniCard {
+  left: 5px;
+  top: 50px;
+}
+.info .right .miniCard {
+  right: 5px;
+  top: 50px;
+}
+.info .bottom .miniCard {
+  left: 50px;
+  bottom: 5px;
+}
+
 
 /**
  */
@@ -52,12 +99,12 @@
   cursor: pointer;
 }
 .belotChooseButton.say {
-  top: -10px;
+  top: -45px;
   left: 0;
 }
 .belotChooseButton.dontSay {
-  top: -10px;
-  right: 0;
+  top: -45px;
+  right: -35px;
 }
 .cardWrapper.forbidden {
   cursor: not-allowed;
@@ -76,50 +123,6 @@
 
 /**
  */
-.myPlayer {
-  display: grid;
-  grid-gap: 10px;
-  grid-template-areas:
-    "myPlayerTalks          myPlayerTalks myPlayerTalks  "
-    "menu                   menu          menu           "
-    "currentPlayerIndicator myCards       additionalCards";
-  grid-template-columns: 50px 1fr 50px;
-  grid-template-rows: 60px 30px 100px;
-}
-.myPlayer > .playerTalks {
-  grid-area: myPlayerTalks;
-}
-.myPlayer > .menu {
-  grid-area: menu;
-}
-.myPlayer > .currentPlayerIndicator {
-  grid-area: currentPlayerIndicator;
-}
-.myPlayer > .myCards {
-  grid-area: myCards;
-}
-.myPlayer > .additionalCards {
-  grid-area: additionalCards;
-}
-.currentPlayerIndicator {
-  position: relative;
-}
-.myPlayer.currentPlayer .currentPlayerIndicator::before {
-  content: '\1f447';
-  font-size: 40px;
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  transform: rotate(-125deg);
-}
-.myPlayer.currentPlayer .currentPlayerIndicator::after {
-  content: '\1f447';
-  font-size: 40px;
-  position: absolute;
-  top: 50px;
-  left: 10px;
-  transform: rotate(-90deg);
-}
 .myCards {
   text-align: center;
 }
@@ -128,69 +131,8 @@
   height: 100px;
   width: 50px;
 }
-/* .myCards .cardWrapper:nth-child(1) {
-  z-index: 1011;
-  transform: rotate(-10deg) translateY(22px);
-}
-.myCards .cardWrapper:nth-child(2) {
-  z-index: 1012;
-  transform: rotate(-8deg) translateY(13px);
-}
-.myCards .cardWrapper:nth-child(3) {
-  z-index: 1013;
-  transform: rotate(-6deg) translateY(5px);
-}
-.myCards .cardWrapper:nth-child(4) {
-  z-index: 1014;
-  transform: rotate(-4deg);
-}
-.myCards .cardWrapper:nth-child(5) {
-  z-index: 1015;
-  transform: rotate(4deg);
-}
-.myCards .cardWrapper:nth-child(6) {
-  z-index: 1016;
-  transform: rotate(6deg) translateY(5px);
-}
-.myCards .cardWrapper:nth-child(7) {
-  z-index: 1017;
-  transform: rotate(8deg) translateY(12px);
-}
-.myCards .cardWrapper:nth-child(8) {
-  z-index: 1018;
-  transform: rotate(10deg) translateY(22px);
-} */
 
-/**
- */
-.playerTalks {
-  margin: 0 auto;
-}
-.playerTalks > * {
-  position: relative;
-  border-radius: 50%;
-  font-size: 20px;
-  text-align: center;
-  padding: 18px;
-  background: rgba(230, 230, 230, 1);
-  z-index: 20;
-}
-.playerTalks > *::after {
-  content: '';
-  position: absolute;
-}
-.myPlayer .playerTalks > *::after {
-  bottom: 10px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border: 20px solid transparent;
-  border-bottom: 0;
-  border-top-color: rgba(230, 230, 230, 1);
-  margin-bottom: -20px;
-  margin-left: -20px;
-}
-.otherPlayer .playerTalks > *::after {
+/* .otherPlayer .playerTalks > *::after {
   top: 10px;
   left: 50%;
   width: 0;
@@ -200,48 +142,40 @@
   border-bottom-color: rgba(230, 230, 230, 1);
   margin-top: -20px;
   margin-left: -20px;
-}
+} */
 
 /**
  */
-.otherPlayer {
-  display: grid;
-  grid-gap: 10px;
-  grid-template-areas:
-    "otherPlayerCards additionalCards "
-    "playerName       playerName      "
-    "otherPlayerTalks otherPlayerTalks";
-  grid-template-columns: 1fr 60px;
-  grid-template-rows: 160px auto 1fr;
-  overflow-x: hidden;
-  overflow-y: auto;
+.otherPlayer.top .otherPlayerCards {
+  transform: rotate(180deg) translate(-25px, 42px);
 }
-.otherPlayer > .otherPlayerCards {
-  grid-area: otherPlayerCards;
+.otherPlayer.left .otherPlayerCards {
+  transform: rotate(90deg) translate(50px, 113px);
 }
-.otherPlayer > .additionalCards {
-  grid-area: additionalCards;
-}
-.otherPlayer > .playerName {
-  grid-area: playerName;
-}
-.otherPlayer > .playerTalks {
-  grid-area: otherPlayerTalks;
+.otherPlayer.right .otherPlayerCards {
+  transform: rotate(270deg) translate(-140px, 114px);
 }
 .otherPlayerCards {
-  position: relative;
-  margin-top: 15px;
-  margin-left: -30px;
-  text-align: center;
+  overflow: hidden;
+  height: 150px;
+  padding-top: 8px;
 }
+
 .otherPlayerCards .card {
   font-size: 90px;
 }
 .otherPlayerCards .cardWrapper {
   position: absolute;
-  background: white;
   transform-origin: bottom center;
+  width: 76px;
+  height: 115px;
 }
+.otherPlayerCards .cardWrapper svg {
+  margin-left: -5px;
+  margin-top: -4px;
+  margin-right: -1px;
+}
+
 .otherPlayerCards .cardWrapper:nth-child(1) {
   z-index: 8;
   transform: rotate(-27deg);
@@ -274,14 +208,14 @@
   z-index: 1;
   transform: rotate(36deg);
 }
-.otherPlayer.currentPlayer .otherPlayerCards::before {
+/* .otherPlayer.currentPlayer .otherPlayerCards::before {
   content: '\1f449';
   position: absolute;
   top: 50%;
   left: 55px;
   font-size: 40px;
   z-index: 10;
-}
+} */
 .hiddenAdditionalCards {
   /* @TODO: don't need it if constraint by parent size */
   margin-left: -25px;
@@ -372,21 +306,112 @@
 
 /**
  */
+.ant-row.bottom {
+  height: 100px;
+}
+
+.playerHolder {
+  position: relative;
+}
+.top .playerHolder {
+  position: absolute;
+  top: 10px;
+  left: 210px;
+}
+.bottom .playerHolder {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+.left .playerHolder {
+  margin-left: 10px;
+}
+.right .playerHolder {
+  margin-right: 10px;
+}
+
+.left .playerHolder .ant-badge,
+.top .playerHolder .ant-badge,
+.bottom .playerHolder .ant-badge {
+  float: left;
+}
+.right .playerHolder .ant-badge {
+  float: right;
+}
+.playerHolder .playerDetail {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+  float: left;
+}
+.right .playerHolder .playerDetail {
+  float: right;
+}
+
 .playerName {
-  z-index: 10;
   font-size: 20px;
   text-align: center;
+  height: 30px;
+  width: 120px;
+  background-color: #daf6ff;
+  border: #1890ff solid;
+  float: left;
+  border-radius: 0 4px 4px 0;
+  border-width: 1px 1px 1px 0;
+}
+.right .playerName {
+  float: right;
+  border-radius: 4px 0 0 4px;
+  border-width: 1px 0 1px 1px;
+}
+.playerSaidHolder {
+  height: 40px;
+  width: 10px;
+}
+.playerHolder .playerTake {
+  border: #000c17 solid;
+  border-width: 0 1px 1px 1px;
+  width: 75px;
+  background: #f0f2f5;
+  align-self: center;
+  font-weight: bold;
+  font-size: 11px;
+}
+.playerHolder .playerTake svg {
+  margin-left: 4px;
+  margin-top: 2px;
+  margin-right: 4px;
+}
+.playerHolder .playerTake span.contre {
+  text-decoration: line-through darkred;
+}
+.playerHolder .playerTake span.surcontre {
+  text-decoration: line-through double darkred;
 }
 
+.left .playerSaidHolder {
+  float: left;
+  margin-left: -10px;
+}
+.right .playerSaidHolder {
+  float: right;
+  margin-right: -10px;
+}
+.playerSaidExpected div,
+.playerSaidExpected svg {
+  float: left;
+  margin-right: 5px;
+  font-size: 15px;
+  font-weight: bold;
+}
+.playerSaidExpected {
+  height: 20px;
+}
 /**
  */
-.playedCardsArea {
-  margin: 0 auto;
-}
 
 .playedCards {
-  margin: auto;
-  width: 50%;
+  margin: 0 auto;
   display: grid;
   grid-gap: 7px;
   grid-template-areas:
@@ -476,9 +501,33 @@
   border-radius: 2px 0 0 2px;
 }
 
-.talkMenu .ant-modal-footer {
-  text-align: center;
+.talkMenu {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
-.talkMenu .ant-modal-footer .ant-btn-primary {
+.talkMenu .content {
+  background-color: #d3d3d3ee;
+  border: slategrey solid 2px;
+  background-color:#d3d3d3dd;
+  width: 500px;
+  height: 210px;
+  z-index: 500;
+}
+.talkMenu .actions {
+  padding: 10px;
+  border: slategrey solid 1px;
+  background-color: #fff;
+  position: relative;
+  top: 21px;
+  left: -1px;
+  width: 498px;
+}
+
+.talkMenu .actions .ant-btn-primary {
   margin-left: 50px;
 }
+

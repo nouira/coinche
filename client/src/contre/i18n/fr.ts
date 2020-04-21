@@ -33,7 +33,7 @@ export const fr: I18n = {
       const contre = `${sayTake.sayContreLevel === undefined ? '' : 'Contré'}${sayTake.sayContreLevel === 'surcontre' ? 'X2' : ''}`;
       return `${contract} ${contre}`;
     },
-    getTakeResult: (result) => result === 'successed' ? 'Réussi' : 'Échec',
+    getTakeResult: (result) => result === 'succeeded' ? 'Réussi' : 'Échec',
     contract: 'Contrat',
     result: 'Résultat',
     detailTotalPoints: 'Détail points',

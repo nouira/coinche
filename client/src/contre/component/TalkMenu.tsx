@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   ExpectedPoints,
   TrumpMode,
@@ -16,7 +16,7 @@ const { Text } = Typography;
 type ComponentProps = {
   saySkip: () => void,
   canSayTake: boolean,
-  sayTake: (selectedExpectedPoints: ExpectedPoints, selectedTrumpMode: TrumpMode) => void,
+  sayTake: (selectedExpectedPoints: ExpectedPoints | undefined, selectedTrumpMode: TrumpMode | undefined) => void,
   canSayContre: boolean,
   canSaySurcontre: boolean,
   sayContre: () => void,
@@ -37,8 +37,8 @@ export const TalkMenuComponent: React.FunctionComponent<ComponentProps> = ({
   visible,
 }) => {
   const i18n = useContext(I18nContext);
-  const [selectedTrumpMode, setSelectedTrumpMode] = useState(selectedTrumpModeDefaultValue);
-  const [selectedExpectedPoint, setSelectedExpectedPoint] = useState(sayableExpectedPoints.length ? sayableExpectedPoints[0] : undefined);
+  const [selectedTrumpMode, setSelectedTrumpMode] = useState<TrumpMode | undefined>();
+  const [selectedExpectedPoint, setSelectedExpectedPoint] = useState<ExpectedPoints | undefined>();
 
   const onChangeTrumpMode = (event: RadioChangeEvent) => {
     const newTrumpMode = event.target.value as TrumpMode;
@@ -48,27 +48,15 @@ export const TalkMenuComponent: React.FunctionComponent<ComponentProps> = ({
       setSelectedTrumpMode(undefined);
     }
   };
-
-  console.log(selectedExpectedPoint);
-  console.log(sayableExpectedPoints);
-
+  useEffect(() => {
+    setSelectedTrumpMode(selectedTrumpModeDefaultValue);
+    setSelectedExpectedPoint(sayableExpectedPoints.length ? sayableExpectedPoints[0] : undefined);
+  }, [selectedTrumpModeDefaultValue, sayableExpectedPoints]);
   const radioButtonStyle = { padding: '4px 10px 0 10px' };
 
   return (
-    <React.Fragment>
-      <Modal className="talkMenu"
-        visible={visible}
-        closable={false}
-        centered
-        footer={[
-          <Button onClick={() => sayContre()} disabled={(!canSayContre && !canSaySurcontre)}>
-            {canSaySurcontre ? i18n.TalkMenu.surcontreButton : i18n.TalkMenu.contreButton}
-          </Button>,
-          <Button type="primary" onClick={() => saySkip()}>
-            {i18n.TalkMenu.skipButton}
-          </Button>,
-        ]}
-      >
+    <div className="talkMenu">
+      <div className="content">
         {canSayTake && sayableExpectedPoints.length > 0 && (
           <React.Fragment>
             <Row className="contractPoints" align="middle" justify="center" style={{height:'100px'}}>
@@ -108,7 +96,7 @@ export const TalkMenuComponent: React.FunctionComponent<ComponentProps> = ({
                 </Space>
               </Col>
               <Col span={9}>
-                <Radio.Group onChange={onChangeTrumpMode} defaultValue={selectedTrumpMode} buttonStyle="solid">
+                <Radio.Group onChange={onChangeTrumpMode} value={selectedTrumpMode} buttonStyle="solid">
                   {validTrumpModes.map(trumpMode => (
                     <Radio.Button value={trumpMode} key={`trumpMode_${trumpMode}`} style={radioButtonStyle}>
                       <SuitComponent cardColor={getCardColorAssociatedToTrumpMode(trumpMode)} />
@@ -120,13 +108,21 @@ export const TalkMenuComponent: React.FunctionComponent<ComponentProps> = ({
             <Row align="middle" justify="center">
               <Col span={3}>
                 <Button disabled={!selectedTrumpMode}
-                  onClick={(selectedExpectedPoint && selectedTrumpMode) ? () => sayTake(selectedExpectedPoint, selectedTrumpMode) : undefined}
+                  onClick={(selectedExpectedPoint && selectedTrumpMode) ? () => {sayTake(selectedExpectedPoint, selectedTrumpMode); } : undefined}
                   data-testid="button sayTake">{i18n.TalkMenu.takeButton}</Button>
               </Col>
             </Row>
           </React.Fragment>
         )}
-      </Modal>
-    </React.Fragment>
+        <div className="actions">
+          <Button onClick={() => {sayContre(); }} disabled={(!canSayContre && !canSaySurcontre)}>
+            {canSaySurcontre ? i18n.TalkMenu.surcontreButton : i18n.TalkMenu.contreButton}
+          </Button>
+          <Button type="primary" onClick={() => {saySkip(); }}>
+            {i18n.TalkMenu.skipButton}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
