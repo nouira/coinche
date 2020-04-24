@@ -40,21 +40,25 @@ export const PlayerSaidComponent: React.FunctionComponent<ComponentProps> = ({
       break;
   }
 
+  if(playerSaid.length === 0)
+    return null;
 
-  content = (<div>
-    {playerSaid.map((said) => {
+  content = (<div className='playerSaidStack'>
+    {playerSaid.map((said, index) => {
+      let opacity = 1 - (.2 * (playerSaid.length - index));
+      let style = {opacity:opacity};
       if (said === 'skip') {
-        return (<div>{i18n.PlayerSaid.skip}</div>);
+        return (<div style={style}>{i18n.PlayerSaid.skip}</div>);
       }
       else if (said === 'contre') {
-        return (<div>{i18n.PlayerSaid.contre}</div>);
+        return (<div style={style}>{i18n.PlayerSaid.contre}</div>);
       }
       else if (said === 'surcontre') {
-        return (<div>{i18n.PlayerSaid.surcontre}</div>);
+        return (<div style={style}>{i18n.PlayerSaid.surcontre}</div>);
       }
       else {
         return (
-          <div className="playerSaidExpected">
+          <div className="playerSaidExpected" style={style}>
             <div>{said.expectedPoints}</div>
             <SuitComponent cardColor={getCardColorAssociatedToTrumpMode(said.trumpMode)} />
           </div>);
