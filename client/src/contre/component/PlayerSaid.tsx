@@ -42,10 +42,15 @@ export const PlayerSaidComponent: React.FunctionComponent<ComponentProps> = ({
 
   if(playerSaid.length === 0)
     return null;
+  let saids = (playerScreenPosition === 'top') ? playerSaid : playerSaid.reverse();
 
-  content = (<div className='playerSaidStack'>
-    {playerSaid.map((said, index) => {
-      let opacity = 1 - (.2 * (playerSaid.length - index));
+  content = (<div className={`playerSaidStack ${playerScreenPosition}`}>
+    {saids.map((said, index) => {
+      let opacity = playerScreenPosition === 'top' ?
+        1 - (.3 * (playerSaid.length - (index+1))) :
+        1 - (.3 * index);
+      if(opacity <= 0) opacity = .1;
+
       let style = {opacity:opacity};
       if (said === 'skip') {
         return (<div style={style}>{i18n.PlayerSaid.skip}</div>);
@@ -66,10 +71,9 @@ export const PlayerSaidComponent: React.FunctionComponent<ComponentProps> = ({
     })}
   </div>);
 
-
   return (
     <Popover placement={placement} content={content} visible={true}>
-      <div className="playerSaidHolder"></div>
+      <div className="playerSaidHolder"/>
     </Popover>
   );
 };

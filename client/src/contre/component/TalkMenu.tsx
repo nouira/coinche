@@ -48,10 +48,10 @@ export const TalkMenuComponent: React.FunctionComponent<ComponentProps> = ({
       setSelectedTrumpMode(undefined);
     }
   };
-  useEffect(() => {
-    setSelectedTrumpMode(selectedTrumpModeDefaultValue);
-    setSelectedExpectedPoint(sayableExpectedPoints.length ? sayableExpectedPoints[0] : undefined);
-  }, [selectedTrumpModeDefaultValue, sayableExpectedPoints]);
+  // useEffect(() => {
+  //   setSelectedTrumpMode(selectedTrumpModeDefaultValue);
+  //   setSelectedExpectedPoint(sayableExpectedPoints.length ? sayableExpectedPoints[0] : undefined);
+  // }, [selectedTrumpModeDefaultValue, sayableExpectedPoints]);
   const radioButtonStyle = { padding: '4px 10px 0 10px' };
 
   return (
