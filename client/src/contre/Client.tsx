@@ -317,11 +317,6 @@ export const BoardComponent: React.FunctionComponent<BoardProps<GameStatePlayerV
                       belotCards={(belotCards.length && belotCards.every(bc => G.playerCards.some(pc => isSameCard(bc, pc)))) ? belotCards : []}
                     />
                   )}
-                  <div className="additionalCards">
-                    {!isDisplayedPreviousCardsPlayed && currentPhaseIsTalk && G.dealer === bottomPlayerID && (
-                      <HiddenStackedCardsComponent cards={G.availableCards} />
-                    )}
-                  </div>
                 </div>
               </Col>
             </Row>

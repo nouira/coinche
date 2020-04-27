@@ -109,4 +109,8 @@ declare module 'boardgame.io/core' {
 
 declare module 'boardgame.io/multiplayer' {
   export function Local(): () => void;
+  export function SocketIO(
+    {
+      server: string,
+    }): () => void;
 }

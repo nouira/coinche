@@ -8,13 +8,11 @@ import waitBeforeMovingToNextPhase from './move/waitBeforeMovingToNextPhase';
 import moveToNextPhase from './move/moveToNextPhase';
 import playCard from './move/playCard';
 import sayBelotOrNot from './move/sayBelotOrNot';
-import sayAnnounce from './move/sayAnnounce';
 import saySkip from './move/saySkip';
 import sayTake from './move/sayTake';
 import sayContre from './move/sayContre';
-import confirmResults from './move/confirmResults';
 import {calculatePoints, getRoundResults} from './service/pointsCounter';
-import {getTurnWinner} from '../coinche/service/winnerResolver';
+import {getTurnWinner} from './service/winnerResolver';
 
 export enum CardColor {
   Spade = 'Spade',
@@ -589,12 +587,6 @@ const getDefaultPlayersCards = () => ({
   [PlayerID.South]: [],
   [PlayerID.West]: [],
 });
-const getDefaultPlayersAnnounces = () => ({
-  [PlayerID.North]: [],
-  [PlayerID.East]: [],
-  [PlayerID.South]: [],
-  [PlayerID.West]: [],
-});
 const getDefaultWonTeamsCards = () => ({
   [TeamID.NorthSouth]: [],
   [TeamID.EastWest]: [],
@@ -886,7 +878,7 @@ export const game: GameConfig<GameState, GameStatePlayerView, Moves, PlayerID, P
             [PlayerID.West]: setCardsPlayability(G.playersCards[PlayerID.West], PlayerID.West === player),
           };
         },
-        onEnd: (G) => {
+        onEnd: () => {
 
         },
       },

@@ -39,7 +39,7 @@ declare module 'boardgame.io/react' {
     PlayerID = DefaultPlayerID,
   > {
     gameID?: string;
-    playerID?: PlayerID;
+    playerID?: DefaultPlayerID;
     debug?: boolean;
   }
 
