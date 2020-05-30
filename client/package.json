@@ -14,11 +14,13 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.0.6",
+    "@types/superagent": "^4.1.7",
     "antd": "^4.1.1",
-    "boardgame.io": "0.39.5",
+    "boardgame.io": "0.39.11",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-router-dom": "5.1.2",
+    "superagent": "^5.2.2",
     "svg-cards": "^4.0.0"
   },
   "devDependencies": {
